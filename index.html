@@ -2898,7 +2898,15 @@ async function useWallet(id){
         // an iPhone may RELOAD this tab while the person is in MetaMask: remember the attempt now, so a reloaded page
         // finds the approved WalletConnect session and connects it by itself
         try { localStorage.setItem('facetsLabConnected', 'walletconnect'); } catch {}
+        /* ⛔ 2026-10-07 on thefacets.art: WalletConnect's relay answered 403 (the Reown project did not list the domain)
+           and the picker sat on PREPARING forever with no word. If no pairing link arrives in 12s, say so and offer
+           the way that does not need WalletConnect at all. */
+        const stuck = setTimeout(() => {
+          wpStatus('WALLETCONNECT IS NOT ANSWERING', 'OPEN THE SITE INSIDE METAMASK INSTEAD',
+            '<button class="wpItem" data-w="metamask-app"><i class="wpIcon">◆</i><span><b>Open inside MetaMask</b><s class="stack">WORKS WITHOUT WALLETCONNECT</s></span></button>');
+        }, 12000);
         provider.once('display_uri', uri => {
+          clearTimeout(stuck);
           const box = document.getElementById('wpList');
           box.innerHTML = '<a class="wpItem wpGo" href="https://metamask.app.link/wc?uri=' + encodeURIComponent(uri) + '">' +
             '<i class="wpIcon">◆</i><span><b>OPEN METAMASK TO APPROVE</b><s class="stack">THEN COME BACK TO THIS PAGE</s></span></a>';
@@ -2906,6 +2914,7 @@ async function useWallet(id){
         });
         try { accts = await provider.enable(); }
         catch(e){
+          clearTimeout(stuck);
           document.body.classList.remove('mmFlow');
           try { localStorage.removeItem('facetsLabConnected'); } catch {}
           if(window.__wpCancelled){ window.__wpCancelled = false; return; }
