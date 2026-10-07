@@ -16,6 +16,11 @@ try { reader = createReader(); api = mount(reader); } catch (e) { console.log('â
 if (reader) { const warm = () => reader.dashboard().catch(() => {}); setTimeout(warm, 3000); setInterval(warm, 55_000); }
 
 http.createServer(async (req, res) => {
+  // www and the retired MIRROR both point here (gruff, 2026-10-07): send them to the one address, path kept
+  const host = String(req.headers.host || '').toLowerCase().split(':')[0];
+  if (host === 'www.thefacets.art' || host === 'mirror.thefacets.art') {
+    res.writeHead(301, { Location: 'https://thefacets.art' + (host === 'www.thefacets.art' ? req.url : '/') }).end(); return;
+  }
   // â›” a malformed %-escape throws here, and an exception in this async handler is an unhandled rejection,
   // which takes the whole Node process down: one bad link would have stopped the site for everyone
   let rel;
