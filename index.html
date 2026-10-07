@@ -1094,6 +1094,40 @@ a.dRow:hover{background:rgba(255,255,255,.7)}
    cascade behind them, so the blur bought nothing: a plain translucent white looks the same and costs nothing. */
 #roomDash .dTile, #roomDash .dTable, #roomActivity .aRow{
   -webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(255,255,255,.74)}
+/* ── HOLDER CARD ─────────────────────────────────────────────────────────────────────────── */
+.hcWrap{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(17,18,26,.32);
+  backdrop-filter:blur(4px)}
+.hcCard{position:relative;width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;border-radius:22px;padding:22px;
+  background:rgba(255,255,255,.96);box-shadow:0 24px 60px rgba(16,18,26,.28)}
+.hcX{position:absolute;top:14px;right:14px}
+.hcTop{display:flex;align-items:center;gap:14px;padding-right:28px}
+.hcTop img{width:64px;height:64px;border-radius:12px;flex:none;background:rgba(17,18,26,.06);box-shadow:0 2px 8px rgba(16,18,26,.18)}
+.hcTop b{display:block;font:900 20px/1.15 'Archivo',system-ui,sans-serif;letter-spacing:-.02em;overflow-wrap:anywhere}
+.hcTop s{display:block;text-decoration:none;margin-top:4px}
+.hcSeven{display:flex;gap:6px;margin:16px 0 4px}
+.hcSeven i{flex:1;height:8px;border-radius:3px;background:var(--c);opacity:.16}
+.hcSeven i.on{opacity:1}
+.hcGrid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(17,18,26,.08);margin-top:12px}
+.hcGrid > div{padding:10px 0 11px;border-bottom:1px solid rgba(17,18,26,.08);min-width:0}
+.hcGrid b{display:block;margin-top:5px;font:900 19px/1.1 'Archivo',system-ui,sans-serif;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hcGrid s{display:block;text-decoration:none;margin-top:3px;font-size:8.5px;line-height:1.2}
+.hcGrid .invMsg{grid-column:1/-1}
+.hcPieces{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0}
+.hcPieces img{width:46px;height:46px;border-radius:8px;box-shadow:0 1px 4px rgba(16,18,26,.18)}
+.hcBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hcBtns .btn{padding:12px 10px;font-size:11.5px}
+/* ── WALLET PICKER ───────────────────────────────────────────────────────────────────────── */
+.wpCard{width:min(380px,100%)}
+.wpHead b{display:block;font:800 13px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em}
+.wpHead s{display:block;text-decoration:none;margin-top:8px}
+.wpList{display:flex;flex-direction:column;gap:8px;margin-top:18px}
+.wpItem{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:13px;cursor:pointer;text-align:left;
+  border:1px solid rgba(17,18,26,.1);background:#fff;transition:border-color .15s, transform .15s}
+.wpItem:hover{border-color:var(--ink);transform:translateY(-1px)}
+.wpItem img, .wpItem .wpIcon{width:30px;height:30px;border-radius:8px;flex:none}
+.wpItem .wpIcon{display:grid;place-items:center;font-style:normal;background:#3b99fc;color:#fff;font-size:15px}
+.wpItem b{display:block;font:700 14px/1.2 'Archivo',system-ui,sans-serif}
+.wpItem s{display:block;text-decoration:none;margin-top:3px;font-size:8.5px}
 </style></head><body>
 
 <header>
@@ -1356,6 +1390,30 @@ a.dRow:hover{background:rgba(255,255,255,.7)}
     </div>
     <div class="aList" id="aList"></div>
     <button class="btn gl aMore hidden" id="aMore">LOAD MORE</button>
+  </div>
+</div>
+
+<!-- ══ WALLET PICKER: MetaMask first, then the other Ethereum wallets, WalletConnect last. No Phantom. -->
+<div class="hcWrap hidden" id="wpWrap">
+  <div class="hcCard wpCard" role="dialog" aria-modal="true">
+    <button class="sheetX hcX" id="wpX" title="close">✕</button>
+    <div class="wpHead"><b>CONNECT A WALLET</b><s class="stack">READ ONLY: NO SIGNATURE, NO TRANSACTION</s></div>
+    <div class="wpList" id="wpList"></div>
+  </div>
+</div>
+
+<!-- ══ HOLDER CARD: a quick look at someone else's numbers. Never their PROFILE, never "connected". -->
+<div class="hcWrap hidden" id="hcWrap">
+  <div class="hcCard" id="hcCard" role="dialog" aria-modal="true">
+    <button class="sheetX hcX" id="hcX" title="close">✕</button>
+    <div class="hcTop"><img id="hcImg" alt=""><div><b id="hcName">·</b><s class="stack" id="hcAddr"></s></div></div>
+    <div class="hcSeven" id="hcSeven"></div>
+    <div class="hcGrid" id="hcGrid"></div>
+    <div class="hcPieces" id="hcPieces"></div>
+    <div class="hcBtns">
+      <a class="btn dark" id="hcOs" target="_blank" rel="noopener">OPENSEA <span>↗</span></a>
+      <a class="btn gl" id="hcScan" target="_blank" rel="noopener">ETHERSCAN <span>↗</span></a>
+    </div>
   </div>
 </div>
 
@@ -2173,10 +2231,10 @@ function dashTable(){
   document.getElementById('dTable').innerHTML =
     '<div class="dRow dHeadRow"><span>#</span><span>HOLDER</span>' + head('pieces','PIECES') + head('facets','FACETS') + head('held','HELD') + head('tickets','TICKETS') + head('rarest','RAREST') + '</div>' +
     shown.map(h => {
-      const me = walletAddr && h.address.toLowerCase() === walletAddr.toLowerCase();
+      const me = walletAddr && !walletView && h.address.toLowerCase() === walletAddr.toLowerCase();
       const dots = F7.map(f => '<i class="'+(h.facets[f] ? 'on' : '')+'" style="--c:var(--'+f+')" title="'+f+(h.facets[f] ? ' \u00b7 '+h.facets[f] : '')+'"></i>').join('');
       const days = h.oldest ? Math.max(0, Math.floor((now - h.oldest) / 86400)) + 'D' : '\u00b7';
-      return '<a class="dRow'+(me ? ' me' : '')+(h.label ? ' isLabel' : '')+'" href="/?wallet='+h.address+'">' +
+      return '<a class="dRow'+(me ? ' me' : '')+(h.label ? ' isLabel' : '')+'" href="#" data-holder="'+h.address+'">' +
         '<span class="dRank">'+(h.rank ? h.rank : '\u00b7')+'</span>' +
         '<span class="dWho"><img loading="lazy" src="/api/art/'+(h.rarest ? h.rarest.id : 1)+'.svg?still=1" alt=""><b>'+esc(h.ens || short(h.address))+'</b>'+(h.label ? '<em>('+h.label+')</em>' : '')+(me ? '<em class="you">YOU</em>' : '')+'</span>' +
         '<span class="dNum">'+n0(h.pieces)+'</span>' +
@@ -2203,6 +2261,45 @@ function dashUI(){
 document.getElementById('dMore').onclick = () => { DASH.all = true; dashTable(); };
 document.getElementById('dSearch').oninput = e => { DASH.q = e.target.value.trim().toLowerCase(); dashTable(); };
 
+/* ══ HOLDER CARD ═════════════════════════════════════════════════════════════════════════════
+   Opened from a DASHBOARD row or an address in ACTIVITY. It READS that wallet (the same /api/wallet the
+   profile uses) and shows its numbers and a few of its pieces; it never connects, never opens PROFILE. */
+async function holderCard(addr){
+  const $ = id => document.getElementById(id), F7 = ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'];
+  const known = DASH.data && DASH.data.holders.find(h => h.address.toLowerCase() === addr.toLowerCase());
+  $('hcName').textContent = (known && known.ens) || short(addr);
+  $('hcAddr').textContent = short(addr) + (known && known.label ? '  (' + known.label + ')' : '');
+  $('hcImg').removeAttribute('src');
+  $('hcSeven').innerHTML = ''; $('hcGrid').innerHTML = '<div class="stack invMsg">READING THE CHAIN…</div>'; $('hcPieces').innerHTML = '';
+  $('hcOs').href = 'https://opensea.io/' + addr; $('hcScan').href = 'https://etherscan.io/address/' + addr;
+  $('hcWrap').classList.remove('hidden');
+  let w; try { w = await fetch('/api/wallet/' + addr).then(r => { if(!r.ok) throw 0; return r.json(); }); }
+  catch { $('hcGrid').innerHTML = '<div class="stack invMsg">THE CHAIN DID NOT ANSWER</div>'; return; }
+  const toks = w.tokens || [], facets = new Set(toks.map(t => String(t.facet).toUpperCase()));
+  if(w.ens) $('hcName').textContent = w.ens;
+  if(!toks.length){ $('hcGrid').innerHTML = '<div class="stack invMsg">HOLDS NO FACETS RIGHT NOW</div>'; return; }
+  const rare = known && known.rarest;
+  $('hcImg').src = '/api/art/' + (rare ? rare.id : toks[0].id) + '.svg?still=1';
+  $('hcSeven').innerHTML = F7.map(f => '<i class="'+(facets.has(f)?'on':'')+'" style="--c:var(--'+f+')" title="'+f+'"></i>').join('');
+  const held = toks.reduce((m, t) => Math.max(m, daysSince(t.heldSince) || 0), 0);
+  const cell = (k, v, sub) => '<div><span class="stack">'+k+'</span><b>'+v+'</b>'+(sub ? '<s class="stack">'+sub+'</s>' : '')+'</div>';
+  $('hcGrid').innerHTML =
+    cell('PIECES', toks.length.toLocaleString('en-US')) + cell('FACETS', facets.size + '/7') + cell('HELD', held + 'D') +
+    cell('RANK', w.rank ? '#' + w.rank : '\u00b7', w.label ? '(' + w.label + ')' : 'OF ' + (w.holders || 0).toLocaleString('en-US')) +
+    cell('TICKETS', toks.reduce((a, t) => a + (t.tickets || 0), 0).toLocaleString('en-US'), 'THE TURN') +
+    cell('RAREST', rare ? esc(rare.value) : '\u00b7', rare ? rare.n + ' OF 2,222' : '');
+  $('hcPieces').innerHTML = toks.slice(0, 8).map(t => '<img loading="lazy" src="/api/art/'+t.id+'.svg?still=1" title="#'+t.id+'" alt="">').join('') +
+    (toks.length > 8 ? '<span class="stack">+' + (toks.length - 8) + '</span>' : '');
+}
+const closeCard = () => document.getElementById('hcWrap').classList.add('hidden');
+document.getElementById('hcX').onclick = closeCard;
+document.getElementById('hcWrap').onclick = e => { if(e.target.id === 'hcWrap') closeCard(); };
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCard(); });
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-holder]'); if(!a) return;
+  e.preventDefault(); holderCard(a.dataset.holder);
+});
+
 /* ══ ACTIVITY ═══════════════════════════════════════════════════════════════════════════════
    /api/activity reads the whole transfer history (alchemy_getAssetTransfers) and tells a SALE from a
    TRANSFER by the payment in the transaction itself (ETH from the buyer, or WETH an accepted offer
@@ -2214,8 +2311,8 @@ const ago = t => { const s = Math.max(0, (Date.now() - Date.parse(t)) / 1000);
 const fmtPay = x => x >= 1 ? x.toFixed(3) : x >= 0.01 ? x.toFixed(4) : x.toFixed(5).replace(/0+$/, '');
 function who(a, ens){
   if(a === ZERO) return '<span class="aAddr">MINT</span>';
-  const mine = walletAddr && a.toLowerCase() === walletAddr.toLowerCase();
-  return '<a class="aAddr'+(mine?' me':'')+'" href="/?wallet='+a+'" title="'+a+'">'+esc(ens[a] || short(a))+(mine?(walletView?' · THIS WALLET':' · YOU'):'')+'</a>';
+  const mine = walletAddr && !walletView && a.toLowerCase() === walletAddr.toLowerCase();
+  return '<a class="aAddr'+(mine?' me':'')+'" href="#" data-holder="'+a+'" title="'+a+'">'+esc(ens[a] || short(a))+(mine?' · YOU':'')+'</a>';
 }
 function rowHTML(r, ens){
   const fig = (owner, cap) => '<figure><img loading="lazy" src="/api/art/'+r.id+'.svg?owner='+owner+'" alt=""><figcaption class="stack">'+cap+'</figcaption></figure>';
@@ -2659,10 +2756,35 @@ const CORE_ADDR = '0xa219558E037063879315D6c0Dc37Aa29E1ed9F07';
 const osItem = id => 'https://opensea.io/assets/ethereum/'+CORE_ADDR+'/'+id;
 
 // EIP-6963: every installed wallet announces itself; the first to answer is used, window.ethereum otherwise
-const ANNOUNCED = [];
-window.addEventListener('eip6963:announceProvider', e => ANNOUNCED.push(e.detail));
+/* ══ WALLETS (gruff, 2026-10-07: "connect wallet" opened Phantom). Every installed wallet announces itself
+   through EIP-6963; we used to take whichever answered FIRST, and Phantom (which also speaks Ethereum) won.
+   Now a picker lists them: MetaMask first, the other Ethereum wallets after it, WalletConnect last for a phone or
+   any wallet not installed here. Phantom is left out on purpose (gruff: "phantom ile işimiz yok"). */
+const ANNOUNCED = new Map();
+window.addEventListener('eip6963:announceProvider', e => { const d = e.detail; if(d && d.info) ANNOUNCED.set(d.info.rdns || d.info.uuid, d); });
 window.dispatchEvent(new Event('eip6963:requestProvider'));
-const pickProvider = () => (ANNOUNCED[0] && ANNOUNCED[0].provider) || window.ethereum || null;
+// WalletConnect project id (cloud.reown.com, project of gruff's, public by design: it ships in every page that uses it)
+const WC_PROJECT_ID = 'f72f6414975b95d96c5cf7bd1863e5ec';
+const WC_LIB = 'https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.0/+esm';
+let wcProvider = null;
+function walletList(){
+  const list = [...ANNOUNCED.values()]
+    .filter(d => !/phantom/i.test((d.info.rdns || '') + ' ' + (d.info.name || '')))
+    .map(d => ({ id: d.info.rdns || d.info.uuid, name: d.info.name, icon: d.info.icon, provider: d.provider }))
+    .sort((a, b) => (/metamask/i.test(b.id + b.name) ? 1 : 0) - (/metamask/i.test(a.id + a.name) ? 1 : 0));
+  // an old-style injected wallet that does not announce itself, unless it is Phantom
+  if(!list.length && window.ethereum && !window.ethereum.isPhantom) list.push({ id: 'injected', name: window.ethereum.isMetaMask ? 'MetaMask' : 'Browser wallet', icon: '', provider: window.ethereum });
+  list.push({ id: 'walletconnect', name: 'WalletConnect', icon: '', sub: 'SCAN WITH YOUR PHONE' });
+  return list;
+}
+async function walletConnectProvider(){
+  if(wcProvider) return wcProvider;
+  const { EthereumProvider } = await import(WC_LIB);
+  wcProvider = await EthereumProvider.init({ projectId: WC_PROJECT_ID, chains: [1], showQrModal: true,
+    metadata: { name: 'FACETS', description: 'THE LAB', url: location.origin, icons: [location.origin + '/assets/logo.svg'] } });
+  return wcProvider;
+}
+const pickProvider = () => { const w = walletList()[0]; return w && w.provider ? w.provider : null; };
 
 function note(txt, action){              // one quiet line under the header, never on top of the content
   const el = document.getElementById('walletNote');
@@ -2673,18 +2795,36 @@ function note(txt, action){              // one quiet line under the header, nev
   relayBlocks();
 }
 
-async function connectWallet(){
-  provider = pickProvider();
-  if(!provider){ note('NO WALLET FOUND IN THIS BROWSER'); return; }
+function connectWallet(){
+  window.dispatchEvent(new Event('eip6963:requestProvider'));       // late wallets get one more chance to announce
+  const box = document.getElementById('wpList');
+  box.innerHTML = walletList().map(w => '<button class="wpItem" data-w="'+esc(w.id)+'">' +
+    (w.icon ? '<img src="'+esc(w.icon)+'" alt="">' : '<i class="wpIcon">'+(w.id === 'walletconnect' ? '\u25a3' : '\u25c6')+'</i>') +
+    '<span><b>'+esc(w.name)+'</b>'+(w.sub ? '<s class="stack">'+w.sub+'</s>' : '')+'</span></button>').join('');
+  document.getElementById('wpWrap').classList.remove('hidden');
+}
+async function useWallet(id){
+  document.getElementById('wpWrap').classList.add('hidden');
   try {
-    const accts = await provider.request({ method:'eth_requestAccounts' });
+    let accts;
+    if(id === 'walletconnect'){
+      provider = await walletConnectProvider();
+      accts = provider.accounts && provider.accounts.length ? provider.accounts : await provider.enable();
+    } else {
+      const w = walletList().find(x => x.id === id); if(!w) return;
+      provider = w.provider;
+      accts = await provider.request({ method:'eth_requestAccounts' });
+    }
     if(!accts || !accts.length) return;
-    try { localStorage.setItem('facetsLabConnected','1'); } catch {}
+    try { localStorage.setItem('facetsLabConnected', id); } catch {}
     watchProvider();
     await openWallet(accts[0], false);
     checkChain();
   } catch(e){ note(e && e.code === 4001 ? 'CONNECTION DECLINED IN THE WALLET' : 'THE WALLET DID NOT ANSWER'); }
 }
+document.getElementById('wpList').onclick = e => { const b = e.target.closest('[data-w]'); if(b) useWallet(b.dataset.w); };
+document.getElementById('wpX').onclick = () => document.getElementById('wpWrap').classList.add('hidden');
+document.getElementById('wpWrap').onclick = e => { if(e.target.id === 'wpWrap') e.target.classList.add('hidden'); };
 function watchProvider(){
   if(!provider || provider.__facetsWatched || !provider.on) return;
   provider.__facetsWatched = true;
@@ -2722,6 +2862,7 @@ function setConnected(on){ connected = on;
     if(b.dataset.v === 'profile') b.style.display = on ? '' : 'none';
   });
   if(!on){
+    if(provider && provider === wcProvider){ try { wcProvider.disconnect(); } catch {} }
     walletAddr = null; walletView = false; WALLET.length = 0; note(null);
     try { localStorage.removeItem('facetsLabConnected'); } catch {}
     if(new URLSearchParams(location.search).has('wallet')) history.replaceState(null, '', location.pathname);
@@ -3122,13 +3263,22 @@ select(Math.floor(Math.random()*PIECES.length)).then(async () => {
   go('home'); draw();
   if(LIVE) loadColl();
   // ?wallet=0x… opens that address read-only; a wallet that was connected before reconnects silently
-  const asked = new URLSearchParams(location.search).get('wallet');
+  // ?wallet= is a TEST hook for this machine only. On the public site PROFILE opens through CONNECT WALLET
+  // and nothing else (gruff, 2026-10-07: a dashboard click made the site look connected as that holder)
+  const asked = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).get('wallet');
   if(asked && /^0x[0-9a-fA-F]{40}$/.test(asked)) { openWallet(asked, true); return; }
   try {
-    if(localStorage.getItem('facetsLabConnected') === '1'){
-      await new Promise(r => setTimeout(r, 120));    // give EIP-6963 wallets a moment to announce
-      provider = pickProvider();
-      const a = provider && await provider.request({ method:'eth_accounts' });
+    const last = localStorage.getItem('facetsLabConnected');
+    if(last){
+      await new Promise(r => setTimeout(r, 150));    // give EIP-6963 wallets a moment to announce
+      let a = null;
+      if(last === 'walletconnect'){
+        // only when a WalletConnect session is already stored: never pop a QR at someone on page load
+        if(Object.keys(localStorage).some(k => /^wc@2/.test(k))){ provider = await walletConnectProvider(); a = provider.accounts; }
+      } else {
+        const w = walletList().find(x => x.id === last); provider = w && w.provider;
+        a = provider && await provider.request({ method:'eth_accounts' });
+      }
       if(a && a.length){ watchProvider(); await openWallet(a[0], false); checkChain(); }
     }
   } catch {}
