@@ -1,0 +1,16 @@
+{
+  "name": "facets-lab",
+  "private": true,
+  "version": "1.0.0",
+  "description": "THE LAB: the FACETS holder site. Reads Ethereum mainnet; holds the RPC key server-side.",
+  "main": "serve.cjs",
+  "scripts": {
+    "start": "node serve.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ethers": "5.8.0"
+  }
+}

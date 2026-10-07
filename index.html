@@ -1,0 +1,3136 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FACETS · THE LAB</title>
+<meta name="description" content="FACETS, a fully on-chain collection of 2,222 on Ethereum. Your pieces, the holders, every dynamic transfer, live from the chain.">
+<meta property="og:title" content="FACETS · THE LAB">
+<meta property="og:description" content="Your pieces, the holders, every dynamic transfer, live from the chain.">
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Pixelify+Sans:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap");
+/* ── the shipped palette, copied from wrapped/site/index_v2.html so the lab and THE MIRROR
+      cannot drift apart. Do not retype these from memory. ──────────────────────────────── */
+:root{
+  --paper:#e8e8ed; --ink:#111114; --muted:#6e6e78; --line:#e3e3e8; --blue:#0101ef;
+  --NEWBIE:#37c878; --COLLECTOR:#0101ef; --DEGEN:#e23b6d; --BUILDER:#fe0000;
+  --OG:#454b54; --WHALE:#fcb913; --GHOST:#99a2ad;
+  --accent:var(--blue);
+  --glass:rgba(255,255,255,.62);
+  --shadow:0 1px 2px rgba(16,18,26,.05), 0 10px 30px rgba(16,18,26,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--paper); color:var(--ink); overflow:hidden;
+  font:400 15px/1.5 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .045 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+.mono{font-family:'JetBrains Mono','JetBrains Mono',ui-monospace,Consolas,monospace}
+.lab{font:700 10px/1 'JetBrains Mono','JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.15em;
+     text-transform:uppercase;color:var(--muted)}
+
+/* ── header ─────────────────────────────────────────────────────────────────────────────── */
+header{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:14px}
+.mark{font:900 13px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:.44em;cursor:pointer;
+  user-select:none;flex:none}
+nav{display:flex;gap:3px;padding:3px;border-radius:12px;flex:none;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow)}
+nav button{border:0;background:transparent;border-radius:9px;padding:8px 16px;cursor:pointer;
+  font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.13em;color:var(--muted)}
+nav button.on{background:rgba(255,255,255,.92);color:var(--ink);box-shadow:0 1px 2px rgba(16,18,26,.14)}
+.hright{display:flex;align-items:center;gap:9px;flex:none}
+
+/* ── glass: the one surface language, used by every panel, button and chip ──────────────── */
+.g{background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);
+   border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow)}
+.chip{border-radius:9px;padding:8px 11px}
+.btn{border-radius:10px;padding:11px 17px;cursor:pointer;background:var(--ink);color:#fff;border:0;
+  font:700 12px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:.05em;
+  transition:transform .12s ease, box-shadow .12s ease}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(16,18,26,.2)}
+.btn.wide{width:100%;padding:14px 17px;font-size:13px}
+.btn.gl{background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);color:var(--ink);
+  border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow)}
+.btn.gl:hover{background:rgba(255,255,255,.85)}
+
+/* ── the board: five zones, exactly the shape of the sketch ─────────────────────────────── */
+.board{display:grid;gap:12px;padding:0 12px 12px;height:calc(100% - 60px);
+  grid-template-columns:minmax(230px,1fr) minmax(430px,1.75fr) minmax(230px,1fr);
+  grid-template-rows:1.22fr .78fr}
+.zone{border-radius:18px;padding:20px 21px;display:flex;flex-direction:column;min-height:0;
+  position:relative;overflow:hidden}
+.zone > h3{margin:0 0 auto;font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted)}
+.z1{grid-column:1;grid-row:1} .z2{grid-column:1;grid-row:2}
+.z3{grid-column:2;grid-row:1} .z4{grid-column:2;grid-row:2}
+.z5{grid-column:3;grid-row:1/span 2}
+.door{cursor:pointer;transition:box-shadow .18s ease, transform .18s ease}
+.door:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(16,18,26,.06),0 18px 44px rgba(16,18,26,.11)}
+.go{margin-top:14px;font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em;
+  color:var(--accent);opacity:0;transition:opacity .18s ease}
+.door:hover .go{opacity:1}
+
+/* the stage zone holds the art and nothing else */
+.z3{background:none;border:0;box-shadow:none;padding:0;display:grid;place-items:center;perspective:1400px}
+.heroWrap{transform-style:preserve-3d;will-change:transform;position:relative}
+#hero{display:block;cursor:crosshair;position:relative;z-index:1}
+/* a white mat between the art and its plinth, or a piece the colour of its own frame dissolves */
+.room.on #hero{outline:0}
+
+/* ── numbers ────────────────────────────────────────────────────────────────────────────── */
+.huge{font:900 clamp(34px,4.4vw,58px)/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:-.045em}
+.of{font:700 13px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;color:var(--muted);margin-left:2px}
+.track{height:7px;border-radius:5px;background:rgba(17,18,26,.09);overflow:hidden;margin:14px 0 12px}
+.fill{height:100%;background:var(--accent);width:0;border-radius:5px;
+  transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.say{font-size:13.5px;color:var(--muted);line-height:1.5;max-width:30ch}
+.say b{color:var(--ink);font-weight:600}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;
+  border-top:1px solid rgba(17,18,26,.07)}
+.row .k{font:600 11px/1.3 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--muted)}
+.row .v{font:700 13px/1.3 'JetBrains Mono',ui-monospace,Consolas,monospace;text-align:right}
+.state{position:absolute;top:18px;right:20px;font:700 9px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.14em;color:var(--muted);border:1px solid rgba(17,18,26,.12);border-radius:6px;
+  padding:5px 7px}
+
+/* the forge diagram, drawn rather than described */
+.mini{display:flex;align-items:center;gap:5px;margin:0 0 15px}
+.mini b{width:15px;height:15px;border-radius:3px;background:var(--accent)}
+.mini b:nth-child(2){opacity:.75} .mini b:nth-child(3){opacity:.55} .mini b:nth-child(4){opacity:.38}
+.mini span{color:var(--muted);font:700 14px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;margin:0 6px}
+.mini i{width:26px;height:26px;border-radius:5px;background:var(--accent);display:block}
+
+.facetTag{display:inline-flex;align-items:center;gap:7px;font:800 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.14em;color:var(--accent)}
+.dot{width:9px;height:9px;border-radius:2px;background:var(--accent)}
+.name{font:600 clamp(17px,1.5vw,22px)/1.25 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;margin:9px 0 4px}
+.traits{display:flex;gap:22px;flex-wrap:wrap;margin-top:auto;padding-top:12px}
+.traits div{min-width:0}
+
+/* inventory */
+.strip{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.strip img{width:46px;height:46px;border-radius:8px;display:block;cursor:pointer;opacity:.45;
+  box-shadow:0 1px 3px rgba(16,18,26,.18);
+  transition:opacity .18s ease, transform .18s cubic-bezier(.2,.8,.2,1)}
+.strip img:hover{opacity:.9;transform:translateY(-3px)}
+.strip img.on{opacity:1;outline:2px solid var(--accent);outline-offset:2px}
+
+.sw{width:40px;height:24px;border-radius:13px;background:rgba(17,18,26,.12);position:relative;
+  cursor:pointer;transition:background .2s ease;flex:none}
+.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.22);transition:transform .2s cubic-bezier(.3,1.4,.5,1)}
+.sw.on{background:var(--accent)} .sw.on i{transform:translateX(16px)}
+
+.foot{display:flex;gap:16px;margin-top:14px}
+.foot a{color:var(--muted);text-decoration:none;cursor:pointer}
+.foot a:hover{color:var(--ink)}
+/* ══ THE ROOM ═══════════════════════════════════════════════════════════════════════════════
+   Not a grid of equal boxes. A place: one huge instrument, one huge number, one huge word, and
+   the pieces in your hand. Every graphic element is built from the collection's own language —
+   ordered-dither blocks and the seven facet colours — so the decoration is ours, not stock.     */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+.room{position:fixed;inset:60px 0 0;z-index:2;display:none;overflow:hidden}
+.room.on{display:block}
+.bigword{position:absolute;left:-14px;bottom:64px;z-index:1;
+  font:900 clamp(84px,11.5vw,176px)/.82 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;
+  letter-spacing:-.05em;color:#d7d7de;opacity:1;user-select:none;pointer-events:none;
+  white-space:nowrap;transition:color .4s ease}
+.roomStage{position:absolute;left:0;right:0;top:0;bottom:150px;display:grid;place-items:center;
+  perspective:1400px;z-index:3}
+.tileShadow{position:absolute;left:0;top:0;border-radius:2px;z-index:0;pointer-events:none;
+  box-shadow:0 34px 44px -8px rgba(16,18,26,.34), 0 8px 14px rgba(16,18,26,.16)}
+.slab{display:none !important;position:absolute;inset:-30px;border-radius:26px;background:var(--accent);z-index:0;
+  display:none;transition:background .4s ease;box-shadow:0 20px 50px rgba(16,18,26,.22)}
+.room.on .slab{display:block}
+
+.idline{position:absolute;left:34px;top:18px;z-index:4;max-width:30ch}
+.idline .facetTag{margin-bottom:9px}
+.idline h2{margin:0;font:600 clamp(20px,2.1vw,30px)/1.2 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;
+  letter-spacing:-.02em}
+.idline .tr{margin-top:12px;display:flex;gap:18px}
+
+.numBig{position:absolute;right:34px;top:18px;z-index:4;text-align:right}
+.numBig .n{font:900 clamp(46px,6.4vw,96px)/.9 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;
+  letter-spacing:-.055em;display:block}
+.numBig .u{font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted)}
+.numBig .bar{height:6px;width:220px;margin-left:auto;margin-top:12px;border-radius:4px;
+  background:rgba(17,18,26,.1);overflow:hidden}
+.numBig .bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:4px;
+  transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+
+.pills{position:absolute;right:34px;bottom:172px;z-index:4;display:flex;flex-direction:column;
+  gap:10px;align-items:flex-end}
+.pill{display:flex;align-items:center;gap:11px;padding:11px 15px;border-radius:14px;cursor:pointer;
+  background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow);
+  transition:transform .16s ease, box-shadow .16s ease}
+.pill:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(16,18,26,.06),0 16px 36px rgba(16,18,26,.12)}
+.pill b{font:800 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em}
+.pill s{text-decoration:none;font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.12em;
+  color:var(--muted)}
+.pill em{width:9px;height:9px;border-radius:2px;background:var(--accent);font-style:normal}
+
+/* the hand: your pieces, held like cards */
+.hand{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:5;display:flex;
+  align-items:flex-end;height:112px}
+.hand img{width:92px;height:92px;border-radius:11px;display:block;cursor:pointer;margin:0 -16px;
+  transform-origin:50% 140%;box-shadow:0 2px 6px rgba(16,18,26,.2),0 14px 30px rgba(16,18,26,.18);
+  outline:3px solid #fff;outline-offset:0;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease}
+.hand img:hover{z-index:9}
+.spectrum{position:absolute;left:34px;bottom:26px;z-index:4;display:flex;gap:0}
+.spectrum i{width:26px;height:9px;display:block}
+.spectrum i:first-child{border-radius:3px 0 0 3px} .spectrum i:last-child{border-radius:0 3px 3px 0}
+
+.draftTag{position:fixed;left:16px;bottom:5px;z-index:40;color:#bcbcc6;pointer-events:none}
+.hidden{display:none !important}
+
+/* ══ shared room furniture ═══════════════════════════════════════════════════════════════ */
+.actions{display:flex;gap:9px;align-items:center;margin-top:18px;flex-wrap:wrap}
+.draftCtl{margin-top:14px;display:flex;align-items:center;gap:10px}
+.draftCtl input{width:120px}
+.factRow{position:absolute;left:34px;right:34px;bottom:26px;z-index:4;display:flex;gap:10px;
+  flex-wrap:wrap;justify-content:center}
+.chipf{display:flex;flex-direction:column;gap:5px;padding:11px 16px;border-radius:14px;
+  background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow)}
+.chipf b{font:900 17px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:-.03em}
+.chipf s{text-decoration:none;font:700 9px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.13em;
+  color:var(--muted)}
+.numBig .u b{color:var(--ink)}
+
+/* a flat row of pieces, used where a fan would get in the way */
+.rowhand{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:5;display:flex;
+  gap:10px;flex-wrap:wrap;justify-content:center;max-width:min(760px,86vw)}
+.rowhand img{width:74px;height:74px;border-radius:10px;display:block;cursor:pointer;opacity:.5;
+  box-shadow:0 2px 6px rgba(16,18,26,.2);outline:3px solid transparent;
+  transition:opacity .18s ease, transform .18s cubic-bezier(.2,.8,.2,1), outline-color .18s ease}
+.rowhand img:hover{opacity:.92;transform:translateY(-4px)}
+.rowhand img.on{opacity:1;outline-color:var(--accent);transform:translateY(-10px)}
+.rowhand.small img{width:54px;height:54px}
+.handLab{position:absolute;left:50%;bottom:66px;transform:translateX(-50%);z-index:5}
+
+
+/* ══ PROFILE ═════════════════════════════════════════════════════════════════════════════ */
+#roomProfile{display:none;padding:14px 16px 16px;gap:14px;
+  grid-template-columns:250px minmax(360px,1fr) 290px;
+  grid-template-rows:minmax(0,1fr) 246px}
+#roomProfile.on{display:grid}
+.pCard{grid-column:1;grid-row:1;border-radius:20px;padding:20px;display:flex;flex-direction:column;
+  background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow);min-height:0;overflow:hidden}
+.pAvatar{width:104px;height:104px;border-radius:50%;display:block;
+  box-shadow:0 6px 18px rgba(16,18,26,.22);outline:3px solid #fff}
+.pAddr{margin-top:16px;font-size:17px;font-weight:700;letter-spacing:-.02em;display:flex;
+  align-items:center;gap:8px}
+.pAddr .cp{color:var(--muted);cursor:pointer;font-size:13px}
+.pMotto{margin-top:12px;line-height:1.8}
+.pStats{display:flex;gap:0;margin:18px 0;border-top:1px solid rgba(17,18,26,.08);
+  border-bottom:1px solid rgba(17,18,26,.08)}
+.pStats > div{flex:1;padding:11px 0 12px;border-right:1px solid rgba(17,18,26,.08)}
+.pStats > div:last-child{border-right:0}
+.pStats b{display:block;margin-top:6px;font:900 21px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;
+  letter-spacing:-.03em}
+.pStats b.soon{font-size:12px;font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;color:var(--muted);
+  letter-spacing:.12em;margin-top:10px}
+.pNav{margin-top:16px;display:flex;flex-direction:column;gap:2px}
+.pNav > div{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;
+  cursor:pointer;font:600 13px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;color:var(--muted)}
+.pNav > div.on{background:rgba(255,255,255,.92);color:var(--ink);box-shadow:0 1px 2px rgba(16,18,26,.1)}
+.pNav em{width:10px;height:10px;border-radius:2px;background:rgba(17,18,26,.16);font-style:normal}
+.pNav > div.on em{background:var(--accent)}
+.pNav s{margin-left:auto;text-decoration:none;font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  color:var(--muted)}
+.pFoot{margin-top:auto;line-height:1.8;padding-top:16px}
+
+.pMid{grid-column:2;grid-row:1;position:relative;display:grid;place-items:center;min-height:0}
+.pMid .roomStage{position:relative;inset:auto;width:100%;height:calc(100% - 118px);padding:0}
+.confetti{position:absolute;inset:-16%;pointer-events:none;z-index:0}
+.confetti i{position:absolute;display:block;border-radius:2px;animation:float 7s ease-in-out infinite;
+  box-shadow:0 4px 9px rgba(16,18,26,.22)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.pCardOver{position:absolute;right:0;bottom:120px;z-index:6;border-radius:14px;padding:13px 15px;
+  width:250px}
+.pCardOver .pcRow{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
+  border-top:1px solid rgba(17,18,26,.07)}
+.pCardOver .k{font:600 10px/1.3 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted)}
+.pCardOver .v{font:700 12px/1.3 'JetBrains Mono',ui-monospace,Consolas,monospace}
+.pMid .rowhand{bottom:10px;flex-wrap:nowrap;max-width:100%}
+
+.pSide{grid-column:3;grid-row:1;display:flex;flex-direction:column;gap:14px;min-height:0;
+  overflow:auto}
+.pPanel{border-radius:20px;padding:17px 18px}
+.pHead{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.pHead b{font:800 12px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.15em}
+.pHead s{text-decoration:none}
+.badges{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.bdg{border-radius:13px;padding:12px 11px;background:rgba(255,255,255,.6);
+  border:1px solid rgba(17,18,26,.07);opacity:.5}
+.bdg.on{opacity:1;border-color:var(--accent);background:#fff}
+.bdg i{display:block;width:26px;height:26px;border-radius:6px;background:rgba(17,18,26,.14);
+  margin-bottom:9px}
+.bdg.on i{background:var(--accent)}
+.bdg b{display:block;font:800 9.5px/1.25 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.08em}
+.bdg s{text-decoration:none;display:block;margin-top:4px;font:700 8.5px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.1em;color:var(--muted)}
+
+.pInv{grid-column:1/span 3;grid-row:2;border-radius:20px;padding:16px 18px;min-height:0;
+  display:flex;flex-direction:column}
+.filters{display:flex;gap:6px;margin-left:14px}
+.filters span{padding:7px 13px;border-radius:9px;cursor:pointer;background:rgba(17,18,26,.05);
+  font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.12em;color:var(--muted)}
+.filters span.on{background:var(--ink);color:#fff}
+.search{margin-left:auto;width:190px;padding:9px 12px;border-radius:9px;border:1px solid var(--line);
+  background:#fff;font:500 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;color:var(--ink)}
+.search:focus{outline:none;border-color:var(--accent)}
+.invGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;
+  overflow:auto;padding-right:4px}
+.invCard{cursor:pointer}
+.invCard img{width:100%;aspect-ratio:1;border-radius:10px;display:block;
+  box-shadow:0 2px 6px rgba(16,18,26,.16);outline:2px solid transparent;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1), outline-color .18s ease}
+.invCard:hover img{transform:translateY(-4px)}
+.invCard.on img{outline-color:var(--accent)}
+.invCard .nm{margin-top:8px;font:700 10.5px/1.3 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.04em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.invCard .ow{margin-top:4px;display:flex;align-items:center;gap:6px;font:700 9px/1 ui-monospace,
+  Consolas,monospace;letter-spacing:.1em;color:var(--muted)}
+.invCard .ow em{width:7px;height:7px;border-radius:50%;background:var(--accent);font-style:normal}
+
+.micro{position:fixed;bottom:16px;z-index:6;line-height:1.8;color:#b9b9c4}
+.micro.left{left:16px} .micro.right{right:16px;text-align:right}
+
+/* ══ the machine box: still, video, lever and our overlay, all in one coordinate space ═════ */
+.machine{position:relative;width:100%;max-width:100%;aspect-ratio:1672/941;
+  margin:0 auto;isolation:isolate}
+.machine img.mStill, .machine video.mVid, .machine canvas.mOver{
+  position:absolute;inset:0;width:100%;height:100%;display:block}
+/* the render's own paper is a hair off ours (#f4f4f6 against #f5f5f7) and it left the machine
+   sitting in a faint rectangle. Multiply drops a near-white ground into the page completely and
+   keeps the metal and the contact shadow. */
+.machine img.mStill{object-fit:contain;z-index:1}
+.machine img.mStill, .machine video.mVid{
+  -webkit-mask-image:radial-gradient(ellipse 74% 76% at 50% 50%, #000 62%, transparent 97%);
+          mask-image:radial-gradient(ellipse 74% 76% at 50% 50%, #000 62%, transparent 97%)}
+.machine video.mVid{object-fit:cover;opacity:0;z-index:2;transition:none}
+/* ⛔ 2026-10-07: the renders' ground was MEASURED at 243-246 (stills and video frames) and the paper is
+   now #e8e8ed (232), so the machines stood on a pale card. Lift the ground to pure white (x1.05) and
+   MULTIPLY it onto the paper: white x paper = paper, exactly, so the ground vanishes and the metal stays.
+   The box carries the paper itself because .machine isolates its blend. */
+/* the page wears a faint noise; a flat box read as a lighter card, so the box wears the same noise,
+   pinned to the window like the page's so the grain lines up */
+.machine{background-color:var(--paper);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .045 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");background-attachment:fixed}
+.machine img.mStill, .machine video.mVid{filter:brightness(1.05);mix-blend-mode:multiply}
+.machine.running img.mStill{opacity:0}
+.machine canvas.mOver{z-index:3;pointer-events:none}
+.machine img.mLever{position:absolute;z-index:4;width:auto;transform-origin:50% 100%;
+  filter:drop-shadow(0 6px 14px rgba(16,18,26,.28));cursor:grab}
+.machine img.mLever:active{cursor:grabbing}
+/* ⛔ the renders carry their contact shadow all the way to the bottom edge (measured #e8e8eb at the
+   bottom mid against #f5f5f7 elsewhere), so without this the machine sits on a visible seam. */
+.machine .mFade{display:none}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+   PASS 2 — built against the four reference pages gruff brought on 2026-09-14.
+   Its grammar: a giant grotesk headline on the left, one giant number on the right, the machine
+   or the artwork in the middle, mono micro-copy pinned in the corners, and one blue.
+   ⛔ Every number on these pages is measured or a placeholder marked as one. The reference's own
+   figures (3.482 holders, 15 ETH threshold, 312 outcomes, RANK #482) are inventions and are gone.
+   ══════════════════════════════════════════════════════════════════════════════════════════ */
+:root{ --blue:#0101ef; --ink:#111114; --paper:#e8e8ed; }
+
+/* the nav, lowercase with a dot under the live page */
+nav{background:none !important;border:0 !important;box-shadow:none !important;padding:0 !important;gap:26px !important}
+nav button{font:500 14px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif !important;letter-spacing:0 !important;
+  color:#6e6e78 !important;background:none !important;box-shadow:none !important;padding:8px 2px !important;
+  position:relative}
+nav button.on{color:var(--ink) !important;font-weight:600 !important}
+nav button.on::after{content:"";position:absolute;left:50%;bottom:-4px;width:5px;height:5px;
+  border-radius:50%;background:var(--blue);transform:translateX(-50%)}
+.mark{font-size:20px !important;letter-spacing:-.02em !important;font-weight:900 !important;
+  display:flex;align-items:center;gap:11px}
+.mark span{color:var(--blue)}
+#connect{border-radius:999px !important;background:#fff !important;color:var(--ink) !important;
+  border:1px solid var(--line) !important;box-shadow:0 2px 10px rgba(16,18,26,.08) !important;
+  font:600 13px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif !important;padding:13px 20px !important;
+  letter-spacing:0 !important;text-transform:lowercase}
+#connect::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--blue);margin-right:9px;vertical-align:middle}
+#walletChip{border-radius:999px !important;background:#fff !important;padding:11px 16px !important}
+
+/* mono micro-copy, the reference's signature */
+.stack{font:600 9.5px/1.75 'JetBrains Mono','JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.24em;
+  text-transform:uppercase;color:#8b8b96}
+.stack b{color:var(--ink);font-weight:700}
+.stack.r{text-align:right}
+.stack .sq{width:6px;height:6px;background:var(--blue);margin-top:9px}
+.stack.r .sq{margin-left:auto}
+.stack.tall{letter-spacing:.2em;line-height:2;color:#6e6e78}
+.stack.low{margin-top:26px}
+.corner{position:absolute;z-index:6}
+.corner.tl{left:32px;top:18px} .corner.tr{right:32px;top:18px;text-align:right}
+.corner.bl{left:32px;bottom:24px} .corner.br{right:32px;bottom:24px;text-align:right}
+
+/* the giant headline and the giant number */
+.giant{margin:0 0 20px;font:900 clamp(40px,4.6vw,74px)/.92 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;
+  letter-spacing:-.045em}
+.bigNum{font:900 clamp(44px,5.6vw,88px)/.9 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;
+  letter-spacing:-.05em;font-feature-settings:"tnum"}
+.bigNum.blue{color:var(--blue)}
+.meter{display:flex;align-items:center;gap:12px;margin-top:12px}
+.meter i{display:block;height:7px;flex:1;border-radius:5px;background:rgba(17,18,26,.1);position:relative;
+  overflow:hidden;min-width:150px}
+.meter i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w,0%);background:var(--accent);
+  border-radius:5px;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.meter.wide i{min-width:230px}
+.meter s{text-decoration:none;font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;color:#8b8b96}
+
+.btn.blue{background:var(--blue);color:#fff;border-radius:12px;padding:15px 22px;
+  font:700 13px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:.02em}
+.btn.blue span{margin-left:10px}
+.btn.dark{background:var(--ink);color:#fff;border-radius:12px}
+.btn.sm{padding:9px 12px}
+.btn[disabled]{opacity:.32;pointer-events:none}
+
+/* the side columns of a machine room */
+.sideL{position:absolute;left:32px;top:46%;transform:translateY(-50%);z-index:6;width:min(30vw,360px)}
+.sideR{position:absolute;right:32px;top:46%;transform:translateY(-50%);z-index:6;width:min(26vw,300px);
+  text-align:right}
+.sideR .meter{justify-content:flex-end} .sideR .meter i{flex:none;width:230px}
+.statusCard{margin-top:22px;padding:18px;border-radius:16px;background:rgba(255,255,255,.66);
+  backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 1px 2px rgba(16,18,26,.05),0 12px 34px rgba(16,18,26,.07)}
+.status{display:flex;align-items:center;gap:10px;margin:9px 0 16px;
+  font:700 17px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:-.01em;color:var(--blue)}
+.status em{width:9px;height:9px;border-radius:50%;background:var(--blue);font-style:normal}
+.card{margin-top:20px;padding:16px 18px;border-radius:16px;background:rgba(255,255,255,.66);
+  backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 1px 2px rgba(16,18,26,.05),0 12px 34px rgba(16,18,26,.07);text-align:left}
+.cardRow{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.cardRow b{font:900 26px/1 'Archivo',-apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:-.03em}
+.dots{display:flex;gap:7px;margin-top:12px}
+.dots i{width:11px;height:11px;border-radius:50%;background:rgba(17,18,26,.14);display:block}
+.dots i.on{background:var(--accent)}
+.draftCtl{margin-top:18px;display:flex;align-items:center;gap:10px}
+.draftCtl input{width:120px}
+
+/* the machine sits in the middle and keeps the biggest share of the room */
+/* ⛔ inset:auto used to sit at the END of this rule and quietly cancelled the left/top above it,
+   which parked the artwork against the left edge. Order matters in a single declaration block. */
+.roomStage{position:absolute;inset:auto;left:50%;top:46%;transform:translate(-50%,-50%);
+  width:min(36vw,480px);aspect-ratio:1/1;height:auto;display:grid;place-items:center;z-index:2}
+#roomTurn .roomStage, #roomForge .roomStage{width:min(82vw,1240px);aspect-ratio:1672/941;top:47%}
+.pMid .roomStage{position:relative;left:auto;top:auto;transform:none;width:100%;
+  aspect-ratio:auto;height:calc(100% - 118px)}
+.hopLabels{position:absolute;left:50%;top:calc(47% - 0.5*min(82vw,1240px)*0.563 + 6px);
+  transform:translateX(-50%);z-index:6;width:min(72vw,1080px);display:flex;justify-content:space-between;
+  font:600 9.5px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.24em;color:#8b8b96}
+
+/* the bottom fact cards */
+.factRow{position:absolute;left:50%;transform:translateX(-50%);bottom:24px;z-index:6;display:flex;gap:9px;
+  flex-wrap:nowrap;max-width:94vw}
+.chipf{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:16px;
+  background:rgba(255,255,255,.66);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.8);box-shadow:0 1px 2px rgba(16,18,26,.05),0 12px 30px rgba(16,18,26,.06)}
+.chipf b{display:block;font:700 10px/1.2 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em}
+.chipf s{text-decoration:none;display:block;margin-top:5px;font:600 9px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.16em;color:#8b8b96}
+.ic{width:21px;height:21px;flex:none;color:var(--ink);opacity:.85;display:block}
+.ic svg{width:100%;height:100%;display:block}
+
+/* HOME */
+#room .roomStage{top:47%}
+.doors{position:absolute;right:32px;bottom:150px;z-index:6;display:flex;flex-direction:column;gap:12px}
+.door2{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:16px;cursor:pointer;
+  background:rgba(255,255,255,.66);backdrop-filter:blur(18px) saturate(1.6);min-width:280px;
+  border:1px solid rgba(255,255,255,.8);box-shadow:0 1px 2px rgba(16,18,26,.05),0 12px 34px rgba(16,18,26,.07);
+  transition:transform .16s ease, box-shadow .16s ease}
+.door2:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(16,18,26,.07),0 18px 44px rgba(16,18,26,.12)}
+.door2 b{display:block;font:700 12px/1.2 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em}
+.door2 s{text-decoration:none;display:block;margin-top:5px;font:600 9px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.16em;color:#8b8b96}
+.door2 em{margin-left:auto;font-style:normal;color:#8b8b96;font-size:17px}
+.door2 .lk{width:17px;height:17px;flex:none;border-radius:3px;border:2px solid var(--ink);opacity:.72;
+  position:relative}
+.door2 .lk::before{content:"";position:absolute;left:2px;top:-6px;width:9px;height:8px;border-radius:5px 5px 0 0;
+  border:2px solid var(--ink);border-bottom:0}
+.tagline{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:6;
+  font:600 9.5px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.3em;color:#8b8b96}
+.hand{bottom:58px}
+.bigword{bottom:52px}
+
+/* FORGE bottom token bar */
+.tokenBar{position:absolute;left:22px;right:22px;bottom:18px;z-index:6;padding:14px 18px 16px;
+  border-radius:20px;background:rgba(255,255,255,.72);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.8);box-shadow:0 1px 2px rgba(16,18,26,.05),0 14px 40px rgba(16,18,26,.08)}
+.tbHead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.tbHead b{font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.2em}
+.tbHead s{text-decoration:none;font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;color:#8b8b96}
+#roomForge .corner.bl{display:none}
+#roomForge .rowhand{position:static;transform:none;max-width:none;justify-content:flex-start;
+  flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+#roomForge .rowhand img{width:78px;height:78px;opacity:.62}
+#roomForge .rowhand img.on{opacity:1;transform:translateY(-2px)}
+.filters span{padding:7px 13px;border-radius:9px;cursor:pointer;background:rgba(17,18,26,.05);
+  font:600 9.5px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em;color:#8b8b96}
+.filters span.on{background:var(--ink);color:#fff}
+
+/* PROFILE: same as pass 1, only the surfaces restated so the glass matches the rest */
+.pCard, .pPanel, .pInv, .pCardOver{background:rgba(255,255,255,.66);
+  backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 1px 2px rgba(16,18,26,.05),0 14px 40px rgba(16,18,26,.07)}
+#roomProfile{padding:16px 18px 18px}
+.pAddr{font-size:18px}
+.pStats b{font-size:22px}
+.invCard .nm{color:var(--ink)}
+
+/* a token in the forge's bar carries its id and a tick box, as the reference does */
+.tok{cursor:pointer;flex:none}
+.tok img{width:78px;height:78px;border-radius:10px;display:block;opacity:.66;
+  box-shadow:0 2px 6px rgba(16,18,26,.18);outline:2px solid transparent;
+  transition:opacity .18s ease, transform .18s cubic-bezier(.2,.8,.2,1), outline-color .18s ease}
+.tok:hover img{opacity:.95;transform:translateY(-3px)}
+.tok.on img{opacity:1;outline-color:var(--blue)}
+.tokFoot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:7px}
+.tokFoot s{text-decoration:none;font:600 9.5px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.1em;color:#8b8b96}
+.tokFoot em{width:15px;height:15px;border-radius:4px;border:1.5px solid rgba(17,18,26,.2);
+  background:#fff;font-style:normal;position:relative;flex:none}
+.tok.on .tokFoot em{background:var(--blue);border-color:var(--blue)}
+.tok.on .tokFoot em::after{content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;
+  border:2px solid #fff;border-top:0;border-left:0;transform:rotate(42deg)}
+.tok.on .tokFoot s{color:var(--ink)}
+
+/* ── pass 3: the reference's own alignment and sizes. The mono was too small and too pale to
+   read, and the right column was right-aligned when the reference is left-aligned. ── */
+.sideR{text-align:left;width:min(24vw,290px)}
+.stack{font-size:10.5px;letter-spacing:.22em;color:#6e6e78}
+.stack.lbl{color:#8b8b96;letter-spacing:.26em}
+.stack.cap{line-height:2;color:#6e6e78;margin-top:10px}
+.stack.cap.big{font-size:15px;letter-spacing:.1em;color:var(--ink);font-weight:600;margin-top:6px}
+.rule{height:1px;background:rgba(17,18,26,.12);margin:18px 0}
+.kv{display:flex;flex-direction:column;gap:7px}
+.kv b{font:700 13px/1.5 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.06em}
+.rowBtn{margin-top:18px;width:100%;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:15px 18px;border-radius:14px;cursor:pointer;background:rgba(255,255,255,.72);
+  border:1px solid rgba(255,255,255,.85);box-shadow:0 1px 2px rgba(16,18,26,.05),0 10px 28px rgba(16,18,26,.07);
+  font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--ink)}
+.rowBtn:hover{background:#fff}
+.bars{width:16px;height:13px;display:block;background:
+  linear-gradient(var(--ink),var(--ink)) 0 100%/4px 6px no-repeat,
+  linear-gradient(var(--ink),var(--ink)) 6px 100%/4px 13px no-repeat,
+  linear-gradient(var(--ink),var(--ink)) 12px 100%/4px 9px no-repeat}
+.awaits{position:absolute;left:50%;transform:translateX(-50%);z-index:6;color:var(--blue);
+  top:calc(47% + 0.5*min(82vw,1240px)*0.563 - 6px);
+  font:600 10.5px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.3em}
+.hopLabels{font-size:10.5px;letter-spacing:.22em;color:#8b8b96}
+.sideL .stack.tall{font-size:11px;letter-spacing:.18em;color:#6e6e78}
+.giant{font-size:clamp(44px,5.2vw,82px)}
+.bigNum{font-size:clamp(48px,6vw,96px)}
+
+/* the machine steps aside for the reveal */
+.machine.revealing img.mStill, .machine.revealing video.mVid{opacity:0 !important;
+  transition:opacity .6s ease}
+#roomForge.reveal .sideL, #roomForge.reveal .sideR, #roomForge.reveal .tokenBar,
+#roomForge.reveal .hopLabels, #roomForge.reveal .awaits{opacity:.12;transition:opacity .5s ease;
+  pointer-events:none}
+
+.tbToggle{margin-left:auto;width:30px;height:30px;border-radius:9px;border:1px solid rgba(17,18,26,.1);
+  background:#fff;cursor:pointer;color:#6e6e78;font-size:13px;line-height:1;transition:transform .2s ease}
+.tokenBar.shut .tbToggle{transform:rotate(-90deg)}
+.tokenBar #fstrip{max-height:132px;overflow:hidden;transition:max-height .28s cubic-bezier(.2,.8,.2,1),
+  opacity .2s ease}
+.tokenBar.shut #fstrip{max-height:0;opacity:0}
+.tokenBar.shut{padding-bottom:12px}
+
+.sheet{position:fixed;right:20px;top:74px;width:min(30vw,380px);z-index:40;padding:20px 22px;
+  border-radius:20px;background:rgba(255,255,255,.86);backdrop-filter:blur(22px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.9);box-shadow:0 2px 6px rgba(16,18,26,.06),0 24px 60px rgba(16,18,26,.14);
+  display:none}
+.sheet.on{display:block}
+.sheetHead{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sheetHead b{font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.2em}
+.sheetX{margin-left:auto;border:0;background:none;cursor:pointer;color:#8b8b96;font-size:14px}
+.sheetNums{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sheetNums .n{display:block;font:900 26px/1 'Archivo',system-ui,sans-serif;letter-spacing:-.03em}
+.sheetNums .stack{margin-top:5px}
+
+.homeStats{display:flex;gap:26px;justify-content:flex-end;margin-top:16px;text-align:right}
+.homeStats b{display:block;margin-top:5px;font:700 15px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.02em}
+.homeStats b.soon{font-size:10px;letter-spacing:.16em;color:#8b8b96}
+.corner.tr .stack.lbl{text-align:right}
+.corner.tr .bigNum{text-align:right}
+.corner.tr .meter{justify-content:flex-end}
+.corner.tr .meter i{flex:none;width:210px}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+   ⛔ PASS 4 — THE LAYOUT IS A GRID NOW, AND IT HAD TO BE.
+   Everything was absolutely positioned against percentages of the viewport, which is a layout
+   that works at exactly one window size. gruff sent Chrome at 100% and at 80% and both broke the
+   same three ways: the pool number ran off the right edge, the corner copy climbed into the
+   headline, and the bottom-left note sat on top of the slider. Absolute boxes cannot know about
+   each other; grid cells cannot overlap. Nothing below uses vw for a position any more.
+   ══════════════════════════════════════════════════════════════════════════════════════════ */
+.mroom{
+  display:none;
+  grid-template-columns:minmax(300px,1fr) minmax(480px,2.3fr) minmax(300px,1fr);
+  grid-template-rows:auto minmax(0,1fr) auto;
+  column-gap:34px; row-gap:14px;
+  padding:10px 34px 22px;
+  align-items:center;
+}
+.mroom.on{display:grid}
+.gTL{grid-area:1/1;align-self:start} .gTC{grid-area:1/2;align-self:start}
+.gTR{grid-area:1/3;align-self:start;justify-self:end;text-align:right}
+.gL{grid-area:2/1} .gC{grid-area:2/2;min-width:0;min-height:0;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.gR{grid-area:2/3}
+.gBL{grid-area:3/1;align-self:end} .gBC{grid-area:3/2;align-self:end;justify-self:center}
+.gBR{grid-area:3/3;align-self:end;justify-self:end;text-align:right}
+
+/* the columns are ordinary blocks again, not floating boxes */
+.mroom .sideL, .mroom .sideR{position:static;transform:none;width:auto;text-align:left}
+.mroom .roomStage{position:relative;inset:auto;left:auto;top:auto;transform:none;
+  width:100%;max-width:100%;aspect-ratio:1672/941;display:grid;place-items:center}
+.mroom .hopLabels{position:static;transform:none;width:100%;display:flex;
+  justify-content:space-between;padding:0 2px}
+.mroom .awaits{position:static;transform:none;top:auto}
+.mroom .factRow{position:static;transform:none;bottom:auto;flex-wrap:wrap;justify-content:center}
+.mroom .corner{position:static}
+.mroom .draftCtl{margin-top:16px}
+
+/* ⛔ the number has to FIT its column. 96px over six digits is 350px of text in a 300px box, which
+   is how it ended up hanging off the edge of the window. */
+.bigNum{font-size:clamp(38px,3.6vw,68px);line-height:.92;white-space:nowrap}
+.giant{font-size:clamp(36px,3.9vw,68px)}
+.sideR .meter i{width:100%;min-width:0}
+.meter{max-width:100%}
+.meter i{min-width:0}
+
+/* HOME on the same frame */
+#room.mroom{grid-template-columns:minmax(260px,1fr) minmax(420px,1.9fr) minmax(280px,1fr)}
+#room .hand{position:static;transform:none;bottom:auto;margin:0 auto}
+#room .tagline{position:static;transform:none;bottom:auto;margin-top:12px;text-align:center}
+#room .doors{position:static;bottom:auto;right:auto}
+#room .spectrum{position:static;left:auto;bottom:auto}
+#room .bigword{bottom:14px;z-index:0}
+.homeStats{margin-top:16px}
+
+/* the forge keeps its token bar pinned, but the grid leaves room for it */
+#roomForge.mroom{padding-bottom:calc(22px + var(--barH, 150px))}
+#roomForge .tokenBar{left:34px;right:34px;bottom:16px}
+
+/* row three spans the whole frame so the notes, the cards and the hand cannot climb onto
+   each other the way they did at 80% zoom */
+.gB{grid-area:3/1/4/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.gB > .stack{flex:0 0 auto;min-width:120px}
+.gBmid{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;min-width:0}
+.gB .factRow{flex:1 1 auto;min-width:0}
+#roomForge .gB{display:block}
+#roomForge .tokenBar{position:static;left:auto;right:auto;bottom:auto}
+#roomForge.mroom{padding-bottom:22px}
+.forgeRow{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.sideL .statusCard{margin-top:20px}
+.mroom .stack.low{margin-top:20px}
+
+/* ⛔ SHORT WINDOWS. At 1280x720 the left column was taller than its row and pushed into the one
+   below. Checked by measuring every box against every other box, not by looking at one screen. */
+.mroom .roomStage{max-width:100%;max-height:100%}
+#room .roomStage{height:100%;width:auto;aspect-ratio:1/1;max-width:100%}
+#roomTurn .roomStage, #roomForge .roomStage{height:auto;width:100%;max-height:100%}
+@media (max-height:880px){
+  .mroom{row-gap:8px;padding:6px 26px 16px;column-gap:24px}
+  .giant{font-size:clamp(30px,3.2vw,56px)}
+  .bigNum{font-size:clamp(32px,3vw,56px)}
+  .statusCard{margin-top:14px;padding:14px 16px}
+  .stack.tall{line-height:1.75;margin-top:10px}
+  .stack.cap{line-height:1.75;margin-top:8px}
+  .chipf{padding:9px 12px;gap:8px}
+  .card{margin-top:14px;padding:13px 15px}
+  .rule{margin:12px 0}
+  .btn.blue{padding:12px 18px}
+}
+@media (max-height:760px){
+  .sideL .stack.tall{display:none}
+  .giant{font-size:clamp(26px,2.8vw,44px)}
+  .bigNum{font-size:clamp(28px,2.6vw,46px)}
+  .mroom .awaits{display:none}
+  .chipf{padding:8px 10px}
+  .chipf s{font-size:8px;letter-spacing:.1em}
+  .tokenBar #fstrip{max-height:104px}
+  .tok img{width:62px;height:62px}
+}
+
+/* the big readouts wear the pixel face, which is the collection's own logic applied to digits */
+#roomTurn .bigNum, #roomForge .bigNum, #room .bigNum, .sheetNums .n{
+  font-family:'Pixelify Sans','JetBrains Mono',ui-monospace,monospace;font-weight:700;
+  letter-spacing:.01em;font-size:clamp(44px,4.4vw,82px)}
+@media (max-height:880px){ #roomTurn .bigNum, #roomForge .bigNum, #room .bigNum{
+  font-size:clamp(38px,3.6vw,66px)} }
+@media (max-height:760px){ #roomTurn .bigNum, #roomForge .bigNum, #room .bigNum{
+  font-size:clamp(32px,3vw,54px)} }
+.cardRow b{font-family:'Pixelify Sans','JetBrains Mono',monospace}
+
+#blockField{position:fixed;inset:0;z-index:4;pointer-events:none}
+.room, .mroom, .gTL,.gTC,.gTR,.gL,.gC,.gR,.gB,.gBmid,.sideL,.sideR{pointer-events:none}
+/* ⛔ the two rooms that SCROLL must take the pointer themselves, or the wheel and every click fall through
+   them (2026-10-07: gruff could neither scroll nor click the DASHBOARD) */
+#roomDash, #roomActivity{pointer-events:auto}
+.room button, .room input, .room canvas, .room .machine, .room .card, .room .statusCard,
+.room .chipf, .room .door2, .room .tokenBar, .room .rowhand, .room .hand, .room .tok,
+.room .pCard, .room .pPanel, .room .pInv, .room .pCardOver, .room .filters, .room .stack,
+.room h1, .room .bigNum, .room .giant, .room .spectrum{pointer-events:auto}
+#blockField i{will-change:transform}
+
+/* ⛔ height:100% against a 1fr row whose height comes from its content is circular, and the
+   browser resolves it as zero. The artwork was measuring a box of nothing and falling to its
+   minimum cell. The centre cell STRETCHES, and the stage fills it; the artwork is then measured
+   from a box that actually has a size. */
+.mroom .gC{align-self:stretch;height:100%}
+#room .roomStage{position:relative;width:100%;height:100%;aspect-ratio:auto;
+  max-width:100%;max-height:100%;display:grid;place-items:center}
+#roomTurn .roomStage, #roomForge .roomStage{height:100%;width:auto;aspect-ratio:1672/941;
+  max-width:100%;margin:0 auto}
+
+/* on HOME the centre column takes the top row's height too, because nothing lives there and the
+   artwork is the page. The side columns keep their own top cells. */
+#room .gC{grid-row:1/3}
+#room .gTC{display:none}
+
+/* ⛔ height:100% on the stage leaves nothing for its siblings inside the same flex column, so the
+   line under the machine and the bar below it got pushed out and overlapped. The stage TAKES WHAT
+   IS LEFT instead of taking everything. */
+#room .roomStage, #roomTurn .roomStage, #roomForge .roomStage{
+  flex:1 1 auto;min-height:0;height:auto;max-height:100%}
+#room .roomStage{width:100%;aspect-ratio:auto}
+#roomTurn .roomStage, #roomForge .roomStage{width:100%;aspect-ratio:auto}
+#roomTurn .machine, #roomForge .machine{max-height:100%;height:100%;width:auto;margin:0 auto}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════
+   ⛔ ONE DEFINITION FOR THE STAGE. Four passes of overrides ended up fighting each other and the
+   artwork collapsed to its minimum cell while the machine overflowed the window. The box that
+   holds an instrument is defined HERE and nowhere else, and the machine's own size is set in JS
+   because it must keep the render's aspect exactly or the overlay stops lining up.
+   ══════════════════════════════════════════════════════════════════════════════════════ */
+#room .gC, #roomTurn .gC, #roomForge .gC{align-self:stretch;height:100%;min-height:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden}
+#room .roomStage, #roomTurn .roomStage, #roomForge .roomStage{
+  position:relative;inset:auto;left:auto;top:auto;transform:none;
+  flex:1 1 auto;width:100%;height:auto;min-height:0;aspect-ratio:auto;
+  max-width:100%;max-height:100%;display:grid;place-items:center;overflow:hidden;margin:0}
+#roomTurn .machine, #roomForge .machine{width:auto;height:auto;max-width:none;max-height:none;
+  aspect-ratio:auto;margin:0}
+
+/* ══ 2026-10-06: wallet note, the DISCOVER caption, profile states ══════════════════════════ */
+#walletNote{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:12px;
+  padding:8px 10px 8px 14px;border-radius:10px;background:rgba(255,255,255,.92);box-shadow:var(--shadow);
+  font:700 10px/1.3 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--ink)}
+#walletNote button{border:0;border-radius:8px;padding:7px 10px;background:var(--ink);color:#fff;cursor:pointer;
+  font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em}
+.tagline.discover{display:flex;flex-direction:column;align-items:center;gap:5px;letter-spacing:.2em}
+.tagline.discover b{font:800 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.24em;color:var(--ink)}
+.tagline.discover span{font:600 9px/1.4 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted)}
+a.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.invMsg{grid-column:1/-1;padding:28px 0;text-align:center}
+.dotOn{display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(17,18,26,.18);margin-left:6px;vertical-align:1px}
+.dotOn.on{background:var(--accent)}
+#traitRows .row .v{max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pAvatar:not([src]){visibility:hidden}
+#roomProfile.empty .pSide, #roomProfile.empty .pMid > :not(.pEmpty){visibility:hidden}
+.pEmpty{display:none;grid-area:1/1;text-align:center}
+#roomProfile.empty .pEmpty{display:block}
+#roomProfile.empty .pMid .roomStage{display:none}
+.pEmpty b{display:block;font:900 clamp(28px,3vw,48px)/1 'Archivo',system-ui,sans-serif;letter-spacing:-.03em;margin-bottom:12px}
+/* the inventory scrolls inside its own panel; it never pushes past the window (a 570-piece wallet is real) */
+.pInv{overflow:hidden}
+.invGrid{flex:1 1 auto;min-height:0;align-content:start}
+/* traits in two columns, label over value, so THE CLOCK and its downloads fit under them */
+#traitRows{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+#traitRows .row{display:block;padding:0;border:0}
+#traitRows .row .k{display:block;font-size:9px;letter-spacing:.14em}
+#traitRows .row .v{display:block;text-align:left;max-width:none;margin-top:3px;font-size:12px}
+/* ⛔ the corner micro-copy sat on top of the inventory cards; on PROFILE there is no free corner for it */
+#roomProfile .corner{display:none}
+/* the pixel face's ascent rises above its line box; at 82px it reached into the POOL label (measured at 2400x1187) */
+#room .gTR .bigNum, #roomTurn .sideR .bigNum, #roomForge .sideR .bigNum{padding:.16em 0 .16em}
+/* ⛔ SHORT WINDOWS, PROFILE (measured at 1280x720): the left card was taller than its row, so the
+   OPENSEA button and the INVENTORY line were cut off under the inventory panel. The card drops its
+   motto and its footer and shrinks the avatar; the inventory row gives up 40px. */
+@media (max-height:800px){
+  #roomProfile{grid-template-rows:minmax(0,1fr) 206px}
+  .pCard{padding:16px}
+  .pAvatar{width:64px;height:64px}
+  .pAddr{margin-top:10px}
+  .pMotto, .pFoot{display:none}
+  .pStats{margin:12px 0}
+  .pStats > div{padding:8px 0 9px}
+  .pNav{margin-top:10px}
+  .pPanel{padding:14px 16px}
+  .invGrid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
+}
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+   📱 MOBILE (2026-10-07). Under 768px every room is ONE column that scrolls, in the order a thumb
+   reads it: the art (or the machine) first, then what it means, then the doors. The desktop rooms are
+   fixed boxes the size of the window; on a phone that crushed everything into 375px and pushed the
+   art off the right edge. Still a grid/flex flow: nothing here is placed absolutely.
+   ══════════════════════════════════════════════════════════════════════════════════════════ */
+@media (max-width:767px){
+  html, body{height:auto}
+  body{overflow-x:hidden;overflow-y:auto}
+
+  /* header: logo + wallet on one row, the rooms as a full-width row under it, pinned while scrolling */
+  header{position:sticky;top:0;z-index:20;height:auto;display:grid;grid-template-columns:auto 1fr;
+    grid-template-areas:"mark right" "nav nav";row-gap:10px;padding:12px 16px 10px;
+    background:rgba(232,232,237,.86);backdrop-filter:blur(18px) saturate(1.6)}
+  header .mark{grid-area:mark}
+  header .hright{grid-area:right;justify-self:end;gap:6px}
+  header nav{grid-area:nav;display:flex}
+  header nav button{flex:1 1 0;padding:9px 4px;font-size:10px;letter-spacing:.08em}
+  #walletChip{padding:7px 9px;font-size:9px}
+  #disconnect, #connect{padding:9px 12px;font-size:11px}
+  #walletNote{top:auto;bottom:16px;left:16px;right:16px;transform:none;flex-wrap:wrap}
+
+  /* the rooms stop being window-sized boxes and become the page */
+  .room{position:static;inset:auto;overflow:visible;height:auto}
+  .mroom.on, #roomProfile.on{display:flex;flex-direction:column;gap:22px;padding:16px 16px 40px}
+  .room .corner, .room .bigword, .draftTag{display:none}
+  .gTL,.gTC,.gTR,.gL,.gC,.gR,.gB{grid-area:auto !important;width:100%;min-width:0;height:auto !important;
+    align-self:stretch !important;justify-self:stretch !important}
+
+  /* HOME: art, then the seven, then the pool, then the doors */
+  #room .gC{order:1}
+  #room .gTL{order:2;display:flex;justify-content:space-between;gap:16px}
+  #room .gTL .stack.low{margin-top:0;text-align:right}
+  #room .gB{order:3;flex-direction:column;align-items:center;gap:18px}
+  #room .gB > .stack{display:none}
+  #room .gTR{order:4;text-align:left}
+  #room .gR{order:5}
+  #room .gR > .stack{display:none}
+  #room .gTC, #room .gL{display:none}
+  #room .roomStage{width:100%;height:auto !important;aspect-ratio:1/1;max-height:none}
+  #room .hand img{width:60px;height:60px;margin:0 -9px;border-radius:9px}
+  .tagline.discover{text-align:center}
+  .tagline.discover span{max-width:30ch}
+  #room .gTR .bigNum{text-align:left}
+  .meter{max-width:100%}
+  #room .meter i{flex:1 1 auto;width:auto}
+  .homeStats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;justify-content:stretch;text-align:left}
+  #room .doors{display:flex;flex-direction:column;gap:10px}
+
+  /* THE TURN and THE FORGE: the machine first at full width, its words under it */
+  #roomTurn .gC, #roomForge .gC{order:1}
+  #roomTurn .gL, #roomForge .gL{order:2}
+  #roomTurn .gR, #roomForge .gR{order:3}
+  #roomTurn .gB, #roomForge .gB{order:4;flex-direction:column;align-items:stretch}
+  #roomForge .gTC{order:0}
+  #roomTurn .gTL, #roomTurn .gTR, #roomForge .gTL, #roomForge .gTR,
+  #roomTurn .gB > .stack, #roomForge .gB > .stack{display:none}
+  #roomTurn .roomStage, #roomForge .roomStage{width:100% !important;height:auto !important;aspect-ratio:1672/941}
+  .giant{font-size:40px}
+  .sideL .stack.tall{display:block}
+  .mroom .awaits{display:block;text-align:center}
+  .factRow{justify-content:flex-start}
+  .tokenBar #fstrip{overflow-x:auto;flex-wrap:nowrap}
+  .sheet{left:16px;right:16px;width:auto;top:auto;bottom:16px}
+
+  /* PROFILE: who, the piece, its traits and clock, then everything they hold */
+  #roomProfile .pCard, #roomProfile .pMid, #roomProfile .pSide, #roomProfile .pInv{grid-column:auto;grid-row:auto;
+    width:100%;min-height:0;overflow:visible}
+  .pCard{display:grid;grid-template-columns:64px 1fr;column-gap:14px;align-items:center;padding:16px}
+  .pAvatar{width:64px;height:64px;grid-row:1/3}
+  .pAddr{margin-top:0}
+  .pMotto, .pFoot{display:none}
+  .pStats, #pOpensea, .pNav{grid-column:1/-1}
+  .pStats{margin:14px 0 12px}
+  .pMid{display:flex;flex-direction:column;gap:14px}
+  .pMid .roomStage{width:100%;height:auto !important;aspect-ratio:1/1}
+  .pCardOver{position:static;width:auto;align-self:stretch}
+  .pMid .rowhand{position:static;transform:none;overflow-x:auto;justify-content:flex-start;max-width:100%;padding:4px 2px 8px}
+  .pMid .rowhand img{flex:none}
+  .pSide{gap:14px}
+  .pInv{height:auto}
+  .pInv .pHead{flex-wrap:wrap;row-gap:10px}
+  .pInv .filters{margin-left:0;order:3;width:100%;flex-wrap:wrap;row-gap:6px}
+  .pInv .search{width:100%;order:4;margin-left:0}
+  .invGrid{grid-template-columns:repeat(3,1fr);max-height:70vh}
+  #roomProfile.empty .pMid .roomStage{display:none}
+  .pEmpty{padding:40px 0}
+}
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+   2026-10-07 — LESS TEXT, A LOCKED FORGE, A PROFILE THAT IS THEIRS (gruff's notes)
+   ══════════════════════════════════════════════════════════════════════════════════════════ */
+/* the paper is a step darker: white glass on near-white read as white on white */
+.gBpad{flex:0 0 182px}   /* the spectrum's width, so the hand stays centred now the corner copy is gone */
+
+/* the (i) beside the room title, and the sheet it opens */
+.titleRow{display:flex;align-items:flex-start;gap:14px}
+.infoBtn{flex:none;margin-top:6px;width:30px;height:30px;border-radius:50%;cursor:pointer;
+  border:1.5px solid rgba(17,18,26,.22);background:rgba(255,255,255,.7);color:var(--ink);
+  font:700 italic 14px/1 Georgia,'Times New Roman',serif}
+.infoBtn:hover{border-color:var(--accent);color:var(--accent)}
+#infoSheet{width:min(34vw,400px)}
+.infoRow{padding:12px 0;border-top:1px solid rgba(17,18,26,.08)}
+.infoRow:first-child{border-top:0;padding-top:4px}
+.infoRow b{display:block;font:800 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.18em;margin-bottom:7px}
+.infoRow span{display:block;font:500 13.5px/1.5 'Archivo',system-ui,sans-serif;color:#2a2a31}
+.infoLink{display:inline-block;margin-top:14px;font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;
+  letter-spacing:.16em;color:var(--blue);text-decoration:none}
+.statusCard .status{margin-bottom:14px}
+
+/* THE FORGE is locked: the pieces are a view, not a choice */
+.tokenBar.locked .tok{cursor:default;pointer-events:none}
+.tokenBar.locked .tok img{opacity:.5;filter:grayscale(.35)}
+.tbMsg{padding:18px 0 10px}
+
+/* ── PROFILE ─────────────────────────────────────────────────────────────────────────────── */
+@property --glowA{syntax:'<color>';inherits:false;initial-value:rgba(0,0,0,0)}
+@property --glowB{syntax:'<color>';inherits:false;initial-value:rgba(0,0,0,0)}
+#roomProfile{
+  background:
+    radial-gradient(ellipse 48% 75% at 0% 40%, var(--glowA), rgba(0,0,0,0) 72%),
+    radial-gradient(ellipse 48% 75% at 100% 60%, var(--glowB), rgba(0,0,0,0) 72%);
+  transition:--glowA 1.1s ease, --glowB 1.1s ease}
+.pWho{margin-top:14px;min-width:0}
+.pName{font:900 22px/1.1 'Archivo',system-ui,sans-serif;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pWho .pAddr{margin-top:6px;font-size:12px;color:var(--muted)}
+.pSeven{display:flex;gap:6px;margin:0 0 16px}
+.pSeven i{flex:1;height:8px;border-radius:3px;background:var(--c);opacity:.16}
+.pSeven i.on{opacity:1;box-shadow:0 2px 8px -2px var(--c)}
+.pPiece{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.pPiece .fdot{flex:none;width:14px;height:14px;border-radius:4px;background:var(--accent);box-shadow:0 2px 8px -2px currentColor}
+.pPiece b{display:block;font:800 16px/1.2 'Archivo',system-ui,sans-serif;letter-spacing:-.01em}
+.pPiece s{display:block;text-decoration:none;margin-top:3px}
+.pTabs{display:flex;gap:4px;padding:3px;border-radius:11px;background:rgba(17,18,26,.05);margin-bottom:14px}
+.pTabs button{flex:1;border:0;background:transparent;border-radius:8px;padding:8px 6px;cursor:pointer;
+  font:700 10px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted)}
+.pTabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(16,18,26,.14)}
+.pTab{display:none}
+.pTab.on{display:block}
+.saveGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.saveGrid .btn{justify-content:center}
+.filters span i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.filters span.on i{box-shadow:0 0 0 1.5px #fff}
+@media (max-width:767px){
+  .gBpad{display:none}
+  .pWho{margin-top:0}
+  .pSeven{grid-column:1/-1}
+  #infoSheet{width:auto;max-height:75vh;overflow:auto}
+  #roomProfile{background-attachment:fixed}
+}
+/* ── 2026-10-07 (3): forge facts, trait swatches ─────────────────────────────────────────── */
+/* many small lines over the blue cascade could not be read: they get the one surface the site has */
+.mroom .sideR.fStats{background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.7);
+  box-shadow:var(--shadow);border-radius:18px;padding:18px 20px}
+.fStats .fHead{margin-top:22px}
+.pures{display:flex;flex-direction:column;gap:6px;margin:10px 0 16px}
+.pure{display:grid;grid-template-columns:1fr 92px 26px;align-items:center;gap:10px}
+.pure i{display:block;height:8px;border-radius:3px}
+.pure .stack{line-height:1}
+.pure b{font:700 12px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;text-align:right}
+.fRow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid rgba(17,18,26,.08)}
+.fRow b{font:700 13px/1 'JetBrains Mono',ui-monospace,Consolas,monospace}
+.tsw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px;vertical-align:-1px;
+  box-shadow:inset 0 0 0 1px rgba(17,18,26,.14)}
+/* ── 2026-10-07 (4): PROFILE left = the person's overall data ───────────────────────────── */
+.pCard{gap:0}
+.pTop{display:flex;align-items:center;gap:14px}
+.pTop .pAvatar{width:72px;height:72px;flex:none}
+.pTop .pWho{margin-top:0}
+.pTop .pName{white-space:normal;overflow-wrap:anywhere;font-size:19px;line-height:1.15}
+.pMostly{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;margin:16px 0 12px;padding:7px 11px 7px 9px;
+  border-radius:9px;background:color-mix(in srgb, var(--c) 14%, white);border:1px solid color-mix(in srgb, var(--c) 30%, transparent)}
+.pMostly i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.pMostly .stack{line-height:1}
+.pMostly b{font:800 12px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em}
+.pGrid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(17,18,26,.08)}
+.pGrid > div{padding:10px 0 11px;border-bottom:1px solid rgba(17,18,26,.08)}
+.pGrid b{display:block;margin-top:5px;font:900 21px/1 'Archivo',system-ui,sans-serif;letter-spacing:-.03em}
+.pGrid s{display:block;text-decoration:none;margin-top:3px;font-size:8.5px;line-height:1.2}
+.pRarest{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0;padding:9px;border-radius:12px;cursor:pointer;
+  text-align:left;border:1px solid rgba(17,18,26,.08);background:rgba(255,255,255,.55)}
+.pRarest:hover{background:#fff}
+.pRarest img{width:46px;height:46px;border-radius:8px;flex:none}
+.pRarest b{display:block;margin-top:4px;font:800 14px/1.2 'Archivo',system-ui,sans-serif}
+.pRarest s{display:block;text-decoration:none;margin-top:3px;font-size:8.5px}
+.pBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
+.pBtns .btn{padding:12px 10px;font-size:11.5px}
+#traitRows .row{position:relative}
+.tOf{display:block;margin-top:2px;font:600 9px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.08em;color:var(--muted)}
+.tOf.rare{color:var(--accent);font-weight:800}
+@media (max-height:800px){
+  .pTop .pAvatar{width:52px;height:52px}
+  .pMostly{margin:10px 0 8px}
+  .pGrid > div{padding:7px 0 8px}
+  .pGrid b{font-size:18px}
+  .pRarest{margin:8px 0;padding:7px}
+  .pRarest img{width:38px;height:38px}
+}
+@media (max-width:767px){
+  .pCard{display:flex !important;flex-direction:column;align-items:stretch !important}
+  .pCard > *{width:auto}
+  .pMostly{align-self:flex-start}
+  #pOpensea{grid-column:auto}
+  .pTop .pAvatar{grid-row:auto}
+}
+/* ── ACTIVITY ────────────────────────────────────────────────────────────────────────────── */
+#roomActivity{overflow-y:auto}
+#roomActivity.on{display:block}
+.aWrap{max-width:900px;margin:0 auto;padding:18px 24px 48px}
+.aHead{display:flex;flex-direction:column;gap:14px;margin-bottom:22px}
+.aTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.aTitle .giant{margin:0}
+.aLive{display:flex;align-items:center;gap:8px;padding-bottom:8px}
+.aLive i{width:8px;height:8px;border-radius:50%;background:var(--NEWBIE);box-shadow:0 0 0 0 var(--NEWBIE);animation:aPulse 1.8s infinite}
+@keyframes aPulse{0%{box-shadow:0 0 0 0 rgba(55,200,120,.55)}70%{box-shadow:0 0 0 9px rgba(55,200,120,0)}100%{box-shadow:0 0 0 0 rgba(55,200,120,0)}}
+.aLead{line-height:1.8}
+.aBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.aBar .filters{margin-left:0;flex-wrap:wrap;row-gap:6px}
+.aBar .search{margin-left:auto;width:170px}
+.filters .mineBtn{border:1px dashed rgba(17,18,26,.25);background:transparent}
+.filters .mineBtn.on{border-style:solid;border-color:var(--ink)}
+.aList{display:grid;grid-template-columns:1fr;gap:12px}   /* one lane, newest on top: a feed reads down, not across */
+.aRow{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;padding:14px;border-radius:18px;
+  background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow);
+  border-left:4px solid var(--c)}
+.aRow.fresh{animation:aIn .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes aIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+.aArt{display:flex;align-items:center;gap:8px}
+.aArt figure{margin:0;text-align:center}
+.aArt img{width:132px;height:132px;border-radius:10px;display:block;background:rgba(17,18,26,.06);box-shadow:0 2px 8px rgba(16,18,26,.16)}
+.aArt figcaption{margin-top:6px;line-height:1}
+.aArrow{font-style:normal;color:var(--muted);font-size:16px;margin-top:-16px}
+.aInfo{min-width:0;display:flex;flex-direction:column;gap:7px}
+.aKind{font:800 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted)}
+.aKind.sale{color:var(--ink)}
+.aKind.sale::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--NEWBIE);margin-right:7px;vertical-align:1px}
+.aKind.mint{color:var(--blue)}
+.aTop s{display:block;text-decoration:none;margin-top:4px;line-height:1}
+.aPiece{display:flex;align-items:center;gap:8px;min-width:0}
+.aPiece .fdot{flex:none;width:10px;height:10px;border-radius:3px}
+.aPiece b{font:800 15px/1.2 'Archivo',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aPiece s{text-decoration:none;flex:none;line-height:1}
+.aWho{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.aAddr{font:700 11px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;color:var(--ink);text-decoration:none;
+  padding:5px 7px;border-radius:7px;background:rgba(17,18,26,.05)}
+a.aAddr:hover{background:rgba(17,18,26,.1)}
+.aAddr.me{background:color-mix(in srgb, var(--accent) 16%, white)}
+.aMeta{display:flex;gap:14px;line-height:1}
+.aMeta a{color:var(--blue);text-decoration:none}
+.aMore{display:block;margin:22px auto 0}
+@media (max-width:767px){
+  #roomActivity.on{display:block;overflow:visible}
+  .aWrap{padding:16px 16px 40px}
+  .aList{grid-template-columns:1fr}
+  .aRow{grid-template-columns:1fr;gap:12px}
+  .aArt{justify-content:center}
+  .aArt img{width:96px;height:96px}
+  .aBar .search{margin-left:0;width:100%}
+  /* six rooms do not fit a phone's width: the menu is a strip that swipes, the open room scrolled into view */
+  header nav{gap:2px;padding:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  header nav::-webkit-scrollbar{display:none}
+  header nav button{flex:none;min-width:0;font-size:10px;padding:9px 12px;letter-spacing:.04em;white-space:nowrap}
+}
+/* ── DYNAMIC TRANSFER: the word in the ACTIVITY lead, in a moving rainbow (and nowhere else) ── */
+.dynWord{font-weight:800;color:transparent;-webkit-background-clip:text;background-clip:text;
+  background-image:linear-gradient(90deg,#ff2e63,#ff8a00,#ffd400,#2bd96b,#1fb6ff,#6a5cff,#d34bff,#ff2e63);
+  background-size:300% 100%;animation:dynShift 6s linear infinite}
+@keyframes dynShift{from{background-position:0% 50%}to{background-position:300% 50%}}
+@media (prefers-reduced-motion:reduce){.dynWord{animation:none}}
+/* ── DASHBOARD ───────────────────────────────────────────────────────────────────────────── */
+#roomDash{overflow-y:auto}
+#roomDash.on{display:block}
+.dWrap{max-width:1180px}
+.dPulse{display:grid;grid-template-columns:repeat(4,1fr) 1.6fr;gap:12px;margin-bottom:28px}
+.dTile{padding:16px 16px 14px;border-radius:16px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow);min-width:0}
+.dTile b{display:block;margin-top:8px;font:700 26px/1 'Pixelify Sans','JetBrains Mono',monospace;white-space:nowrap}
+.dTile s{display:block;text-decoration:none;margin-top:7px;font-size:8.5px;line-height:1.3}
+.dBar{display:flex;height:12px;border-radius:4px;overflow:hidden;margin-top:12px;gap:2px}
+.dBar i{display:block;min-width:4px}
+.dLegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;font-size:8.5px;line-height:1.2}
+.dLegend i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:5px;vertical-align:0}
+.dSection{margin-bottom:30px}
+.dHead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.dHead b{font:800 12px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em}
+.dHead s{text-decoration:none}
+.dHead .search{margin-left:auto;width:220px}
+.dTable{border-radius:16px;overflow:hidden;background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow)}
+.dRow{display:grid;grid-template-columns:44px minmax(190px,1.5fr) 70px 120px 64px 92px minmax(120px,1fr);gap:12px;align-items:center;
+  padding:11px 16px;border-top:1px solid rgba(17,18,26,.06);color:var(--ink);text-decoration:none}
+a.dRow:hover{background:rgba(255,255,255,.7)}
+.dRow.me{background:color-mix(in srgb, var(--accent) 12%, white)}
+.dRow.isLabel{opacity:.72}   /* not .lab: that name is the site-wide mono-caps utility */
+.dHeadRow{border-top:0;font:700 9.5px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted);
+  background:rgba(17,18,26,.03)}
+.dh{cursor:pointer;user-select:none}
+.dh.on{color:var(--ink)}
+.dRank{font:700 13px/1 'Pixelify Sans','JetBrains Mono',monospace;color:var(--muted)}
+.dWho{min-width:0;display:flex;align-items:center;gap:9px}
+.dWho img{flex:none;width:34px;height:34px;border-radius:8px;box-shadow:0 1px 4px rgba(16,18,26,.18)}
+.dWho b{font:700 12.5px/1.2 'JetBrains Mono',ui-monospace,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dWho em{flex:none;font:700 9px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted);font-style:normal}
+.dWho em.you{color:var(--accent)}
+.dNum{font:700 13px/1.1 'JetBrains Mono',ui-monospace,Consolas,monospace}
+.dNum s{display:block;text-decoration:none;font-size:8px;margin-top:3px;line-height:1}
+.dDots{display:flex;gap:4px}
+.dDots i{width:11px;height:11px;border-radius:3px;background:var(--c);opacity:.14}
+.dDots i.on{opacity:1}
+.dRare{font:600 12px/1.2 'Archivo',system-ui,sans-serif;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dRare s{display:block;text-decoration:none;font-size:8px;margin-top:3px;line-height:1}
+@media (max-width:1180px){ .dPulse{grid-template-columns:repeat(2,1fr)} .dDist{grid-column:span 2} }
+@media (max-width:767px){
+  #roomDash.on{display:block;overflow:visible}
+  .dPulse{grid-template-columns:1fr 1fr}
+  .dDist{grid-column:span 2}
+  .dHead .search{margin-left:0;width:100%}
+  .dRow{grid-template-columns:30px 1fr 52px 64px;gap:8px;padding:11px 12px}
+  .dRow > :nth-child(4), .dRow > :nth-child(5), .dRow > :nth-child(7){display:none}
+}
+/* ⛔ PERFORMANCE (gruff, 2026-10-07: "dashboard donuyor ve kasıyor"). The script was measured cheap (keep-out
+   1.3 ms, table 3.3 ms), so the cost was the PAINT: backdrop-filter blur on a ~2,600px table and dozens of cards,
+   re-blurred every frame because the colour blocks behind them never stop moving. These two rooms have no
+   cascade behind them, so the blur bought nothing: a plain translucent white looks the same and costs nothing. */
+#roomDash .dTile, #roomDash .dTable, #roomActivity .aRow{
+  -webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(255,255,255,.74)}
+</style></head><body>
+
+<header>
+  <div class="mark" id="mark"><span>FACETS</span></div>
+  <nav id="nav">
+    <button data-v="home" id="navHome" class="on">home</button>
+    <button data-v="dash">dashboard</button>
+    <button data-v="turn">the turn</button>
+    <button data-v="forge">the forge</button>
+    <button data-v="activity">activity</button>
+    <button data-v="profile" style="display:none">profile</button>
+  </nav>
+  <div class="hright">
+    <div class="chip g lab hidden" id="walletChip">0x4730…A646</div>
+    <button class="btn gl hidden" id="disconnect">DISCONNECT</button>
+    <button class="btn" id="connect">CONNECT WALLET</button>
+  </div>
+</header>
+
+<div id="walletNote" class="hidden"><span></span><button class="hidden"></button></div>
+<canvas id="bg"></canvas>
+<div id="blockField"></div>
+
+<!-- ══ THE ROOM ════════════════════════════════════════════════════════════════════════ -->
+<!-- ══ HOME ══════════════════════════════════════════════════════════════════════════════ -->
+<!-- ══ HOME ══════════════════════════════════════════════════════════════════════════════ -->
+<div class="room mroom" id="room">
+  <div class="bigword" id="bigword">FACETS</div>
+
+  <div class="gTL">
+    <div class="stack">FACET<br><b id="rFacet">WHALE</b><br><span id="rId">#5464</span></div>
+  </div>
+  <div class="gTC"></div>
+  <div class="gTR">
+    <div class="stack lbl">POOL</div>
+    <div class="bigNum"><span id="rNum">0.0006</span></div>
+    <div class="meter"><i id="rBar"></i><s id="rPct">0.06%</s></div>
+    <div class="stack" id="rUnit">Ξ IN THE POOL</div>
+    <div class="homeStats">
+      <div><span class="stack lbl">SUPPLY</span><b id="hsSupply">2,222</b></div>
+      <div><span class="stack lbl">HOLDERS</span><b id="hsHolders">·</b></div>
+      <div><span class="stack lbl">FACETS</span><b>7</b></div>
+      <div><span class="stack lbl">REVEALED</span><b>01 OCT</b></div>
+    </div>
+  </div>
+
+  <div class="gL"></div>
+  <div class="gC">
+    <div class="roomStage" id="roomStage">
+      <div class="heroWrap" id="heroWrap"><div class="tileShadow" id="tileShadow"></div><canvas id="hero"></canvas></div>
+    </div>
+  </div>
+  <!-- the two doors to THE FORGE and THE TURN are gone (gruff, 2026-10-07): the menu already says it -->
+  <div class="gR"></div>
+
+  <div class="gB">
+    <div class="spectrum" id="spectrum"></div>
+    <div class="gBmid">
+      <div class="hand" id="hand"></div>
+      <div class="tagline discover" id="handLabel"><b>DISCOVER A FEW FACETS</b><span>7 OF 2,222, ONE FROM EACH FACET · A NEW HAND EVERY VISIT</span></div>
+    </div>
+    <div class="gBpad"></div>
+  </div>
+</div>
+
+<!-- ══ THE TURN ══════════════════════════════════════════════════════════════════════════
+     gruff, 2026-10-07: too much text, and it repeated itself (seven winners was said four times).
+     One line under the title; everything that explains lives behind the (i). -->
+<div class="room mroom" id="roomTurn">
+  <div class="gTL"></div><div class="gTC"></div><div class="gTR"></div>
+
+  <div class="gL">
+    <div class="sideL">
+      <div class="titleRow"><h1 class="giant">THE<br>TURN</h1><button class="infoBtn" data-info="turn" title="how it works">i</button></div>
+      <div class="stack tall">EVERY SECONDARY SALE FILLS THE POOL.<br>AT 1 Ξ, SEVEN HOLDERS WIN.</div>
+      <div class="statusCard">
+        <div class="status" id="tSay"><em></em>FILLING</div>
+        <button class="btn blue wide" id="pullBtn" disabled>SOON</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gC">
+    <div class="roomStage" id="turnStage"></div>
+  </div>
+
+  <div class="gR">
+    <div class="sideR">
+      <div class="stack lbl">POOL</div>
+      <div class="bigNum blue"><span id="tNum">0.0006</span></div>
+      <div class="stack cap big">/ 1.0000 Ξ</div>
+      <div class="meter wide"><i id="tBar"></i></div>
+    </div>
+  </div>
+
+  <div class="gB">
+    <div class="factRow">
+      <div class="chipf"><i class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 5 12.5 12 16.5 19 12.5 12 2Z" fill="currentColor"/><path d="M12 18 5 14 12 22 19 14 12 18Z" fill="currentColor" opacity=".55"/></svg></i><div><b>POOL SOURCE</b><s>SECONDARY SALES</s></div></div>
+      <div class="chipf"><i class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.3" fill="currentColor"/><circle cx="17" cy="9" r="2.6" fill="currentColor" opacity=".55"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 14.5c2.6.2 4.5 1.8 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/></svg></i><div><b>WINNERS</b><s>7, ONE PER FACET</s></div></div>
+      <div class="chipf"><i class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5.2l3.4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></i><div><b>COOLDOWN</b><s>ONE DAY</s></div></div>
+      <div class="chipf"><i class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="7.5" cy="7.5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="16.5" r="3" stroke="currentColor" stroke-width="2"/><path d="M19 5 5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></i><div><b>THE PULLER TAKES</b><s>1% OF THE POT</s></div></div>
+      <div class="chipf"><i class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3h8l4 4v14H6V3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 3v4h4M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></i><div><b>TRANSPARENCY</b><s>ON CHAIN</s></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ THE FORGE: LOCKED. The pieces in the bar cannot be picked and the button says SOON. ═══ -->
+<div class="room mroom" id="roomForge">
+  <div class="gTL"></div><div class="gTC"></div><div class="gTR"></div>
+
+  <div class="gL">
+    <div class="sideL">
+      <div class="titleRow"><h1 class="giant">THE<br>FORGE</h1><button class="infoBtn" data-info="forge" title="how it works">i</button></div>
+      <div class="stack tall">BURN 2 TO 7 PIECES<br>INTO ONE NEW PIECE.</div>
+      <div class="statusCard">
+        <div class="status"><em></em>LOCKED</div>
+        <button class="btn blue wide" id="forgeBtn" disabled>SOON</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gC">
+    <div class="roomStage" id="forgeStageEl"></div>
+  </div>
+
+  <div class="gR">
+    <div class="sideR fStats">
+      <div class="stack lbl">PRISMS, EVER</div>
+      <div class="bigNum blue"><span id="fPrism">136</span></div>
+      <div class="stack cap">AT MOST. A PRISM NEEDS ALL SEVEN FACETS,<br>AND THERE ARE ONLY <b id="fGhosts">136</b> GHOSTS.</div>
+      <div class="stack lbl fHead">PURES, AT MOST</div>
+      <div class="pures" id="fPures"></div>
+      <div class="fRow"><span class="stack">FORGED</span><b id="fForged">0</b></div>
+      <div class="fRow"><span class="stack">BURNED</span><b id="fBurned">0</b></div>
+    </div>
+  </div>
+
+  <div class="gB">
+    <section class="tokenBar locked">
+      <div class="tbHead"><b>YOUR TOKENS</b><s id="tbCount"></s></div>
+      <div class="rowhand" id="fstrip"></div>
+    </section>
+  </div>
+</div>
+
+<!-- ══ PROFILE: who, the piece, ONE panel about it (tabs), everything they hold ════════════
+     gruff, 2026-10-07: on connecting he did not know where to look, every box said something else.
+     So one thing per place: the person on the left, the piece in the middle, the piece's facts in one
+     tabbed panel on the right, the collection underneath. The light behind is the piece's own colour. -->
+<div class="room" id="roomProfile">
+  <aside class="pCard">
+    <div class="pTop">
+      <img class="pAvatar" id="pAvatar" alt="">
+      <div class="pWho">
+        <div class="pName" id="pName">0x…</div>
+        <div class="pAddr mono" id="pAddr"><span id="pAddrTxt">0x…</span><span class="cp" title="copy">⧉</span></div>
+      </div>
+    </div>
+    <div class="pMostly" id="pMostly"><i></i><span class="stack">MOSTLY</span><b>·</b></div>
+    <div class="pSeven" id="pSeven" title="the seven facets: lit = held"></div>
+    <div class="pGrid">
+      <div><span class="stack">PIECES</span><b id="pPieces">0</b></div>
+      <div><span class="stack">FACETS</span><b id="pFacets">0/7</b></div>
+      <div><span class="stack">HELD</span><b id="pHeld">0</b></div>
+      <div title="where this wallet stands among all holders, by pieces held"><span class="stack">RANK</span><b id="pRank">·</b><s class="stack" id="pRankOf"></s></div>
+      <div><span class="stack">TICKETS</span><b id="pTickets">0</b><s class="stack">THE TURN</s></div>
+      <div title="this wallet's share of the whole collection"><span class="stack">SHARE</span><b id="pShare2">0%</b><s class="stack">OF 2,222</s></div>
+    </div>
+    <button class="pRarest" id="pRarest" title="show this piece">
+      <img id="pRarestImg" alt="">
+      <div><span class="stack">YOUR RAREST</span><b id="pRarestTrait">·</b><s class="stack" id="pRarestOf"></s></div>
+    </button>
+    <div class="pBtns">
+      <button class="btn wide blue" id="pShare">SHARE CARD</button>
+      <a class="btn wide dark" id="pOpensea" target="_blank" rel="noopener">OPENSEA <span>↗</span></a>
+    </div>
+  </aside>
+
+  <section class="pMid">
+    <div class="roomStage" id="profileStage"></div>
+    <div class="pEmpty"><b>NO FACETS HERE YET</b><span class="stack">THIS WALLET HOLDS NONE OF THE 2,222</span></div>
+  </section>
+
+  <aside class="pSide">
+    <div class="pPanel">
+      <div class="pPiece">
+        <i class="fdot" id="qDot"></i>
+        <div><b id="qName">·</b><s class="stack" id="qId">·</s></div>
+      </div>
+      <div class="pTabs" id="pTabs">
+        <button data-t="traits" class="on">TRAITS</button>
+        <button data-t="clock">CLOCK</button>
+        <button data-t="save">SAVE</button>
+      </div>
+      <div class="pTab on" data-t="traits"><div id="traitRows"></div></div>
+      <div class="pTab" data-t="clock">
+        <div class="row"><span class="k">HELD</span><span class="v" id="qHeld">·</span></div>
+        <div class="row"><span class="k">TURN TICKETS</span><span class="v" id="qTickets">·</span></div>
+        <div class="row"><span class="k">DRAWS IN</span><span class="v" id="qBucket">·</span></div>
+        <div class="row"><span class="k">MOTION</span><span class="v"><span id="qMotionTxt">·</span> <i class="dotOn" id="qMotion"></i></span></div>
+      </div>
+      <div class="pTab" data-t="save">
+        <div class="saveGrid">
+          <a class="btn gl sm" id="dlSvg">SVG</a>
+          <button class="btn gl sm" id="dlPng">PNG 1050</button>
+          <button class="btn gl sm" id="dlPng4">PNG 4200</button>
+          <a class="btn gl sm" id="qOpensea" target="_blank" rel="noopener">OPENSEA ↗</a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="pInv">
+    <div class="pHead"><b>INVENTORY</b><s class="stack" id="invCount">0</s>
+      <div class="filters" id="filters"></div>
+      <input class="search mono" id="invSearch" placeholder="search tokens...">
+    </div>
+    <div class="invGrid" id="invGrid"></div>
+  </section>
+</div>
+
+<!-- ══ DASHBOARD: the holders, the pulse, the seven buckets of THE TURN. All of it read off the chain. -->
+<div class="room" id="roomDash">
+  <div class="aWrap dWrap">
+    <div class="aHead">
+      <div class="aTitle">
+        <h1 class="giant">DASHBOARD</h1>
+        <div class="aLive"><i></i><span class="stack" id="dBlock">LIVE FROM MAINNET</span></div>
+      </div>
+    </div>
+
+    <div class="dPulse" id="dPulse"></div>
+
+
+    <div class="dSection">
+      <div class="dHead"><b>HOLDERS</b><s class="stack" id="dCount"></s>
+        <input class="search mono" id="dSearch" placeholder="address or ens...">
+      </div>
+      <div class="dTable" id="dTable"></div>
+      <button class="btn gl aMore hidden" id="dMore">SHOW ALL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ACTIVITY: every sale, transfer and mint, newest first, live. The art follows its holder,
+     so each transfer shows the piece as it drew for the old wallet and as it draws for the new one. -->
+<div class="room" id="roomActivity">
+  <div class="aWrap">
+    <div class="aHead">
+      <div class="aTitle">
+        <h1 class="giant">ACTIVITY</h1>
+        <div class="aLive"><i></i><span class="stack">LIVE · NEWEST FIRST</span></div>
+      </div>
+      <!-- gruff, 2026-10-07: the rainbow lives ONLY here, so the tab says what it is for -->
+      <div class="stack aLead">EVERY TRANSFER HERE IS A <span class="dynWord">DYNAMIC TRANSFER</span>: THE ART FOLLOWS ITS HOLDER,<br>SO POSE AND HUE CHANGE WITH THE WALLET. BEFORE IS THE OLD WALLET, AFTER THE NEW ONE.</div>
+      <div class="aBar">
+        <div class="filters" id="aFilters"></div>
+        <input class="search mono" id="aSearch" placeholder="token id..." inputmode="numeric">
+      </div>
+    </div>
+    <div class="aList" id="aList"></div>
+    <button class="btn gl aMore hidden" id="aMore">LOAD MORE</button>
+  </div>
+</div>
+
+<!-- the (i) behind THE TURN and THE FORGE: everything that explains, in one place -->
+<div class="sheet" id="infoSheet">
+  <div class="sheetHead"><b id="infoTitle">HOW IT WORKS</b><button class="sheetX" id="infoX">✕</button></div>
+  <div id="infoBody"></div>
+</div>
+
+
+<script src="cells.js"></script>
+<script>
+/* ══ DISCOVER: seven real tokens, one per facet, drawn by the server from a 56-token pool on every
+      visit (data/discover.json). The art is the chain's own still for the token's current owner.
+      Without the read server the page falls back to the seven pieces saved on 2026-09-13, whose
+      ids and names are placeholders. ═══════════════════════════════════════════════════════════ */
+const DISCOVER = /*@DISCOVER*/null;
+const LIVE = Array.isArray(DISCOVER);
+const PIECES = LIVE
+  ? DISCOVER.map(t => ({id:t.id, facet:t.facet, name:t.name, file:'/api/art/'+t.id+'.svg?still=1'}))
+  : [
+  {id:1204, facet:'NEWBIE', name:'proud to be newbie', file:'art7/piece_0.svg'},
+  {id:2907, facet:'COLLECTOR', name:'facets maxi', file:'art7/piece_1.svg'},
+  {id:3518, facet:'DEGEN', name:'it was supposed to be stable', file:'art7/piece_2.svg'},
+  {id:4461, facet:'BUILDER', name:'buildooooor', file:'art7/piece_3.svg'},
+  {id:5330, facet:'OG', name:'i remember paying 0.08', file:'art7/piece_4.svg'},
+  {id:6102, facet:'WHALE', name:'the whale was me', file:'art7/piece_5.svg'},
+  {id:6788, facet:'GHOST', name:'no bio no pfp', file:'art7/piece_6.svg'}
+];
+/* facet sizes: the 2,222 at reveal until /api/collection answers, then whatever the chain says */
+const SUPPLY = {NEWBIE:537, COLLECTOR:486, DEGEN:359, BUILDER:287, OG:246, WHALE:171, GHOST:136};
+const N = 35;
+
+/* ══ a chain SVG is runs of blocks grouped by fill. Expand it to a flat 35x35 grid so a single
+      block can be ringed, lifted and moved without touching the rest. cells.js is a port of the
+      project's reference parser and is checked against it on every token (verify_cells.cjs). ═══ */
+async function loadGrid(file){
+  const txt = await fetch(file).then(r => r.text());
+  return FacetsCells.cells(txt);
+}
+
+/* ══ THE VAULT ═══════════════════════════════════════════════════════════════════════════
+   The centre of the board is a stage, and each tab puts its own instrument on it: the art on
+   HOME, this vault on THE TURN, the furnace on THE FORGE. The vault is drawn in the SAME 35x35
+   blocks the collection is drawn in, so it belongs to the same world as the pieces, and it is an
+   instrument rather than a picture: the liquid IS the pool, the handle IS the transaction.
+   ⛔ Nothing here is decoration that lies. Below the threshold the handle really does spring back. */
+const VAULT = {
+  /* seven tones and a light that comes from the top left, which is the same rule the collection's
+     own art is held to. A flat single-tone box reads as a placeholder, not as an object. */
+  LIT:'#7c828c', MID:'#454b54', DARK:'#2b3038', BOLT:'#9aa1ab',
+  GLASS:'#0e0f13', DEEP:'#00008f', LIQ:'#0101ef', TOP:'#4f6bff', GOLD:'#fcb913', TICK:'#6e6e78',
+  x0:4, x1:24, y0:5, y1:29,            // frame box, inclusive. Interior is two blocks inside it
+  level:0.0006, lever:0, t:0, drip:0,
+  sockets:['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'],
+
+  /* the handle's grab area, in block space, so the pointer code and the drawing cannot disagree */
+  pivot(){ return {x:this.x1+3, y:this.y0+9}; },
+  handle(){
+    const p = this.pivot(), a = (-86 + this.lever*140) * Math.PI/180;
+    return {x:p.x + Math.cos(a)*7, y:p.y + Math.sin(a)*7, px:p.x, py:p.y};
+  },
+
+  grid(){
+    const g = new Array(N*N).fill(null);
+    const put = (x,y,c) => { x=Math.round(x); y=Math.round(y);
+                             if(x>=0&&x<N&&y>=0&&y<N) g[y*N+x] = c; };
+    const ix0=this.x0+2, ix1=this.x1-2, iy0=this.y0+2, iy1=this.y1-2;
+
+    // ── the frame, lit from the top left ─────────────────────────────────────────────────
+    for(let y=this.y0;y<=this.y1;y++) for(let x=this.x0;x<=this.x1;x++){
+      if(x>=ix0 && x<=ix1 && y>=iy0 && y<=iy1) { put(x,y,this.GLASS); continue; }
+      let c = this.MID;
+      if(y <= this.y0+1 || x <= this.x0+1) c = this.LIT;        // the lit lip, two blocks deep
+      if(y >= this.y1-1 || x >= this.x1-1) c = this.DARK;       // the shaded underside
+      if(y <= this.y0 && x <= this.x1-1) c = '#98a0aa';         // the brightest edge of all
+      put(x,y,c);
+    }
+    // bolts in the four corners of the frame
+    [[this.x0,this.y0],[this.x1-1,this.y0],[this.x0,this.y1-1],[this.x1-1,this.y1-1]]
+      .forEach(([bx,by]) => put(bx+1, by+1, this.BOLT));
+
+    // ── the pipe: royalties arrive from above, one block at a time ───────────────────────
+    for(let y=0;y<this.y0;y++){ put(13,y,this.MID); put(14,y,this.DARK); }
+    put(12,this.y0-1,this.LIT); put(15,this.y0-1,this.DARK);
+
+    // ── the liquid ──────────────────────────────────────────────────────────────────────
+    const inner = iy1-iy0+1;
+    const h = Math.min(this.level,1) * inner;
+    const surface = [];
+    for(let x=ix0;x<=ix1;x++){
+      const wave = Math.sin(this.t*0.9 + x*0.55)*0.45 + Math.sin(this.t*1.7 + x*0.21)*0.22;
+      const top = iy1 - (h + (h>0.6 ? wave : 0));
+      surface[x] = top;
+      for(let y=iy1;y>=iy0;y--){
+        if(y <= top) continue;
+        if(y <= top+1){ put(x, y, this.TOP); continue; }           // the lit surface
+        // four bands by depth, so a full tank is a body of liquid rather than a slab of colour
+        const d = (y - top) / Math.max(h, 1);
+        put(x, y, d > 0.72 ? this.DEEP : d > 0.40 ? '#0101c4' : this.LIQ);
+      }
+    }
+    // one pale reflection running down the glass, the way light sits on a tank
+    for(let i=0;i<6;i++){
+      const rx = ix0+2+i, ry = iy0+1+i*2;
+      if(ry<=iy1 && (g[ry*N+rx] === this.GLASS)) put(rx, ry, '#1b1f28');
+    }
+    // a block of royalty falling down the pipe and landing in the pool
+    const fall = (this.drip % 2.6) / 2.6;
+    if(fall < 0.75){
+      const fy = 1 + fall/0.75 * ((surface[13]||iy1) - 1);
+      put(13, fy, this.TOP); put(14, fy, this.LIQ);
+    }
+
+    // ── the scale up the inner right wall, and the line that has to be crossed ───────────
+    for(let i=1;i<=4;i++){
+      const y = iy1 - (inner*i/4) + 1, full = (i===4);
+      const c = full ? (this.level>=1 ? this.GOLD : '#c9ced6') : this.TICK;
+      // on the glass, not on the frame: a grey tick on a grey wall is invisible
+      put(ix1, y, c); put(ix1-1, y, c);
+      if(full){ put(ix0, y, c); put(ix0+1, y, c); }
+    }
+
+    // ── the handle ──────────────────────────────────────────────────────────────────────
+    // the bracket that bolts the lever to the tank. Without it the arm floats beside the vault
+    const pv = this.pivot();
+    for(let x=this.x1-1;x<=pv.x+1;x++){ put(x, pv.y-1, this.LIT); put(x, pv.y, this.MID);
+                                        put(x, pv.y+1, this.DARK); }
+    const hd = this.handle(), steps = 18;
+    for(let i=0;i<=steps;i++){
+      const x = hd.px + (hd.x-hd.px)*i/steps, y = hd.py + (hd.y-hd.py)*i/steps;
+      put(x, y, this.MID); put(x, y+1, this.DARK);
+    }
+    for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++) put(hd.px+dx, hd.py+dy, this.DARK);
+    put(hd.px, hd.py, this.BOLT);                                  // the pivot it turns on
+    const knob = this.level>=1 ? this.GOLD : this.LIT;
+    for(let dy=-2;dy<=1;dy++) for(let dx=-2;dx<=1;dx++) put(hd.x+dx, hd.y+dy, knob);
+    put(hd.x-2, hd.y-2, this.level>=1 ? '#ffd76a' : '#b9c0c9');    // lit corner
+    put(hd.x+1, hd.y+1, this.level>=1 ? '#c98d0a' : this.MID);     // shaded corner
+
+    // ── the base plate, with the seven sockets set into it ──────────────────────────────
+    const by = this.y1+1;
+    for(let x=this.x0-2;x<=this.x1+2;x++){ put(x,by,this.MID); put(x,by+1,this.DARK); }
+    const cs = getComputedStyle(document.documentElement);
+    for(let i=0;i<7;i++){
+      const sx = this.x0 - 1 + i*3.2;
+      put(sx, by, cs.getPropertyValue('--'+this.sockets[i]).trim() || '#999');
+      put(sx+1, by, this.DARK);
+    }
+    put(this.x0-1, by+2, this.DARK); put(this.x1+1, by+2, this.DARK);   // two feet
+    return g;
+  }
+};
+
+/* ══ THE FURNACE ═════════════════════════════════════════════════════════════════════════
+   The same machine shop as the vault: block-built, lit from the top left, an instrument rather
+   than a picture. The burn is not a decoration over the mechanic, it IS the mechanic: the inputs
+   come apart into their own blocks, converge, and land SCRAMBLED, because a forged piece really
+   is unknown until its salt arrives five blocks later. Then it settles into place.               */
+const FORGE = {
+  LIT:'#7c828c', MID:'#454b54', DARK:'#2b3038', BOLT:'#9aa1ab', GLASS:'#0e0f13',
+  EMBER:['#7a1b0b','#c23a10','#ef6a1b','#ffb04a'],
+  x0:5, x1:29, y0:5, y1:27,
+  sel:[], state:'select', t:0, parts:null, result:null, resultIdx:0, glow:0,
+
+  facetOf(i){ return PIECES[i].facet; },
+  /* the bucket a forged piece draws in is the DOMINANT facet of what went in — never an eighth
+     bucket of its own. FacetsCore decides this once, at mint, and FacetsTurn reads it back. */
+  dominant(){
+    if(!this.sel.length) return null;
+    const c = {}; let best = null;
+    for(const i of this.sel){ const f = this.facetOf(i); c[f] = (c[f]||0)+1;
+      if(!best || c[f] > c[best]) best = f; }
+    return best;
+  },
+  slot(k){ return {x: this.x0+3 + k*3, y: this.y0+2}; },   // where an input sits in the hopper
+
+  grid(){
+    const g = new Array(N*N).fill(null);
+    const put = (x,y,c) => { x=Math.round(x); y=Math.round(y);
+                             if(x>=0&&x<N&&y>=0&&y<N) g[y*N+x] = c; };
+    const wx0=this.x0+3, wx1=this.x1-3, wy0=this.y0+7, wy1=this.y1-3;   // the window
+
+    // chimney
+    for(let y=0;y<this.y0;y++){ put(15,y,this.MID); put(16,y,this.MID); put(17,y,this.DARK); }
+    put(14,0,this.LIT); put(18,0,this.DARK);
+
+    // body, lit from the top left
+    for(let y=this.y0;y<=this.y1;y++) for(let x=this.x0;x<=this.x1;x++){
+      if(x>=wx0 && x<=wx1 && y>=wy0 && y<=wy1){ put(x,y,this.GLASS); continue; }
+      let c = this.MID;
+      if(y <= this.y0+1 || x <= this.x0+1) c = this.LIT;
+      if(y >= this.y1-1 || x >= this.x1-1) c = this.DARK;
+      if(y <= this.y0) c = '#98a0aa';
+      put(x,y,c);
+    }
+    [[this.x0+1,this.y0+1],[this.x1-1,this.y0+1],[this.x0+1,this.y1-1],[this.x1-1,this.y1-1]]
+      .forEach(([bx,by]) => put(bx,by,this.BOLT));
+
+    // the hopper, and the pieces waiting in it
+    for(let x=this.x0+2;x<=this.x1-2;x++){ put(x,this.y0+1,this.DARK); put(x,this.y0+5,this.DARK); }
+    const cs = getComputedStyle(document.documentElement);
+    this.sel.forEach((idx,k) => {
+      const s = this.slot(k), col = cs.getPropertyValue('--'+this.facetOf(idx)).trim() || '#999';
+      for(let dy=0;dy<2;dy++) for(let dx=0;dx<2;dx++) put(s.x+dx, s.y+dy, col);
+      put(s.x, s.y, '#fff');                                  // one lit corner, so a tile has a form
+    });
+
+    // the fire behind the glass. It breathes while idle and roars during a burn
+    const heat = this.state === 'burn' ? 1 : (this.sel.length ? 0.45 : 0.18);
+    this.glow += (heat - this.glow) * Math.min(1, dt*5);
+    for(let x=wx0;x<=wx1;x++){
+      const f = (Math.sin(this.t*2.1 + x*0.7)*0.5+0.5) * this.glow;
+      const rows = Math.round(f*5);
+      for(let r=0;r<rows;r++){
+        const band = Math.min(this.EMBER.length-1, Math.max(0, Math.round((rows-r-1)/2)));
+        put(x, wy1-r, this.EMBER[band]);
+      }
+    }
+
+    // the output tray
+    for(let x=this.x0+2;x<=this.x1-2;x++){ put(x,this.y1+1,this.MID); put(x,this.y1+2,this.DARK); }
+    put(this.x0+1,this.y1+3,this.DARK); put(this.x1-1,this.y1+3,this.DARK);
+    return g;
+  },
+
+  /* Build one particle per painted cell of the RESULT, each starting life in the hopper slot of one
+     of the burned pieces. Same blocks in, same blocks out, which is exactly the claim being made. */
+  start(resultGrid){
+    const P = [], sel = this.sel;
+    for(let k=0;k<N*N;k++){
+      const c = resultGrid[k]; if(!c) continue;
+      const src = this.slot(Math.floor(Math.random()*Math.max(sel.length,1)));
+      P.push({ sx: src.x + Math.random()*2, sy: src.y + Math.random()*2,
+               tx: k%N, ty: (k/N)|0, c, d: Math.random()*0.22 });
+    }
+    // the scrambled landing: the art is genuinely unknown until the salt arrives
+    const order = P.map((_,i)=>i);
+    for(let i=order.length-1;i>0;i--){ const j = (Math.random()*(i+1))|0;
+      [order[i],order[j]] = [order[j],order[i]]; }
+    P.forEach((p,i) => { const q = P[order[i]]; p.mx = q.tx; p.my = q.ty; });
+    // the order the blocks land in during the reveal: every painted cell, shuffled
+    const ord = []; for(let k=0;k<N*N;k++) if(resultGrid[k]) ord.push(k);
+    for(let i=ord.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [ord[i],ord[j]]=[ord[j],ord[i]]; }
+    this.revealOrder = ord;
+    this.parts = P; this.t0 = this.t; this.state = 'burn';
+  }
+};
+
+/* ══ the hero ════════════════════════════════════════════════════════════════════════════ */
+const cv = document.getElementById('hero'), cx = cv.getContext('2d');
+let DEPTH = 8, PAD = 20;
+const shade = (hex, f) => { const n = parseInt((hex||'#101014').slice(1),16);
+  const c = [n>>16&255, n>>8&255, n&255].map(v => Math.round(v*f));
+  return 'rgb('+c.join(',')+')'; };
+const off = document.createElement('canvas'); off.width = off.height = N;
+const og = off.getContext('2d');
+let grid = null, base = null, cell = 0, cur = 0, Z = 0;
+let tilt = {x:0,y:0}, want = {x:0,y:0};
+let mx = -9, my = -9, held = -1, grab = 0, px = 0, py = 0, flash = 0, fa = -1, fb = -1;
+const toy = () => view === 'home' && !connected;        // the blocks are a toy on the way in, never on your own piece
+
+function sizeHero(){
+  const host = document.getElementById('heroWrap').parentElement;
+  if(!host) return;
+  const cs = getComputedStyle(host);
+  const w = host.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const h = host.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
+  /* ⛔ THE CANVAS IS WIDER THAN THE ARTWORK. It also carries the slab's thickness and the room
+     the shadow falls into, so fitting N*cell to the box overflows it by about 6 cells every time.
+     Total = N + DEPTH(0.8) + 2*PAD(2.6) = 41 cells. Fit THAT. */
+  const capped = Math.floor(Math.min(w - 24, h - 24) / 36);   // 35 of art + 0.8 of edge
+  cell = Math.max(6, Math.min(26, capped));
+  Z = cell;
+  DEPTH = Math.max(4, Math.round(cell*0.8));   // the tile is a slab, and a slab has a side
+  PAD   = 0;                                   // the shadow is a div behind the tile, not paint
+  const dpr = window.devicePixelRatio || 1;
+  const side = N*cell + DEPTH + PAD*2;
+  cv.width = cv.height = side*dpr;
+  cv.style.width = cv.style.height = side+'px';
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  const sh = document.getElementById('tileShadow');
+  if(sh){ sh.style.width = (N*cell)+'px'; sh.style.height = (N*cell)+'px'; }
+}
+
+/* white on a dark block, ink on a light one. A fixed white ring disappears on pale art. */
+function ringColour(hex){
+  const n = parseInt((hex||'#000').slice(1), 16);
+  const l = (0.2126*(n>>16&255) + 0.7152*(n>>8&255) + 0.0722*(n&255))/255;
+  return l < 0.55 ? 'rgba(255,255,255,.85)' : 'rgba(17,18,26,.6)';
+}
+function ring(k, col, w, inset){
+  const x = (k%N)*Z+inset, y = ((k/N)|0)*Z+inset, s = Z-inset*2;
+  cx.strokeStyle = col; cx.lineWidth = w; cx.strokeRect(x+w/2, y+w/2, s-w, s-w);
+}
+
+function draw(){
+  requestAnimationFrame(draw);
+  tick();
+  stepBlocks();
+  // the artwork is not on screen in these rooms: do not paint 1,225 blocks a frame for nobody
+  if(view === 'dash' || view === 'activity') return;
+  const onVault = (view === 'turn'), onForge = (view === 'forge');
+  if(!grid && !onVault && !onForge) return;
+  tilt.x += (want.x-tilt.x)*0.09; tilt.y += (want.y-tilt.y)*0.09;
+  document.getElementById('heroWrap').style.transform =
+    'translate3d('+(tilt.x*1.7).toFixed(1)+'px,'+(-tilt.y*1.7).toFixed(1)+'px,0)';
+
+  if(onVault){ VAULT.t += dt; turnM.tickVideo();
+    // below the threshold the handle springs back, which is the honest animation: it cannot fire
+    if(!dragging) VAULT.lever += (0 - VAULT.lever) * Math.min(1, dt*9);
+    drawTurnMachine(); return; }
+  if(onForge){ forgeStage(); forgeM.tickVideo(); drawForgeMachine(); return; }
+
+  let src = grid;
+  if(false){
+    VAULT.t += dt; VAULT.drip += dt;
+    // below the threshold the handle really does spring back, and it is the only honest animation
+    if(!dragging) VAULT.lever += (0 - VAULT.lever) * 0.18;
+    src = VAULT.grid();
+  }
+  if(onForge) src = forgeStage();
+
+  /* the art is painted on a 35x35 surface and blown up with smoothing off, so the blocks stay
+     hard-edged; every piece of interface is drawn afterwards at full size, where 2px is 2px. */
+  og.clearRect(0,0,N,N);
+  if(src) for(let k=0;k<N*N;k++){ if(src[k]){ og.fillStyle = src[k]; og.fillRect(k%N, (k/N)|0, 1, 1); } }
+  if(!onVault && !onForge && held >= 0){ og.fillStyle='#0b0b0d'; og.fillRect(held%N,(held/N)|0,1,1); }
+  cx.imageSmoothingEnabled = false;
+  cx.clearRect(0,0,cv.width,cv.height);
+  const P = PAD;
+  if(!onVault && !onForge && src){
+    /* ⛔ THE SIDE IS MADE OF THE ARTWORK, NOT OF ONE DARK COLOUR. Taking the background and
+       darkening it turned every piece with a black ground into a black block sitting behind the
+       art, which is the 'old shadow' gruff kept seeing. The right edge of the slab is the
+       artwork's own right-hand column, darkened; the bottom edge is its bottom row. */
+    for(let j=0;j<N;j++){                              // the right side, row by row
+      const col = src[j*N + (N-1)]; if(!col) continue;
+      cx.fillStyle = shade(col, 0.62);
+      cx.fillRect(P + N*Z, P + j*Z + DEPTH, DEPTH, Z+1);
+    }
+    for(let i=0;i<N;i++){                              // the bottom side, column by column
+      const col = src[(N-1)*N + i]; if(!col) continue;
+      cx.fillStyle = shade(col, 0.48);
+      cx.fillRect(P + i*Z + DEPTH, P + N*Z, Z+1, DEPTH);
+    }
+    cx.fillStyle = shade(src[N*N-1] || '#101014', 0.4);
+    cx.fillRect(P + N*Z, P + N*Z, DEPTH, DEPTH);       // the corner where the two meet
+  }
+  cx.drawImage(off, 0,0,N,N, P,P,N*Z,N*Z);
+  if(onForge){ forgeParticles(); return; }
+  if(onVault) return;
+
+  const over = (mx<0||my<0||mx>=N||my>=N) ? -1 : ((my|0)*N + (mx|0));
+  if(toy()){
+    if(held < 0 && over >= 0) ring(over, ringColour(grid[over]), 2, 1);   // the grid is touchable
+    if(held >= 0){
+      cx.setLineDash([4,3]); ring(held, 'rgba(255,255,255,.55)', 2, 1); cx.setLineDash([]);
+      grab += (1-grab)*0.25;
+      const S = Z*(1+0.7*grab);
+      /* the carried block rides ABOVE the cursor, never under it, or it covers the very cell it
+         is about to land in. */
+      px += (mx*Z-px)*0.5; py += ((my*Z - Z*2.4) - py)*0.5;
+      if(over >= 0 && over !== held){
+        cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fillRect((over%N)*Z, ((over/N)|0)*Z, Z, Z);
+        ring(over, '#fff', 3, 0);
+      }
+      cx.save(); cx.shadowColor = 'rgba(0,0,0,.85)'; cx.shadowBlur = 18; cx.shadowOffsetY = 6;
+      cx.fillStyle = grid[held]; cx.fillRect(px-S/2, py-S/2, S, S); cx.restore();
+      cx.strokeStyle = '#fff'; cx.lineWidth = 2.5; cx.strokeRect(px-S/2+1.25, py-S/2+1.25, S-2.5, S-2.5);
+      if(over !== held){
+        cx.strokeStyle = 'rgba(255,255,255,.3)'; cx.lineWidth = 1; cx.beginPath();
+        cx.moveTo(px, py+S/2); cx.lineTo((held%N)*Z+Z/2, ((held/N)|0)*Z+Z/2); cx.stroke();
+      }
+    } else grab += (0-grab)*0.25;
+    if(flash > 0){
+      cx.fillStyle = 'rgba(255,255,255,'+(flash*.55)+')';
+      if(fa>=0) cx.fillRect((fa%N)*Z, ((fa/N)|0)*Z, Z, Z);
+      if(fb>=0) cx.fillRect((fb%N)*Z, ((fb/N)|0)*Z, Z, Z);
+      flash -= .07;
+    }
+  }
+}
+
+/* ══ the burn, beat by beat ══════════════════════════════════════════════════════════════
+   select → burn (the inputs come apart and converge) → the landing is SCRAMBLED → wait, five
+   blocks, which is the real commit-reveal delay → settle → out.                             */
+const BURN = 6.0, WAIT = 1.6, SETTLE = 3.4;
+const ease = t => t*t*(3-2*t);
+FORGE.t0 = 0;
+
+/* ⛔ EVERY CLOCK HERE IS REAL TIME, NOT FRAMES. Counting 0.016 per frame assumes 60fps, and the
+   first machine that did not run at 60 turned a 2 second burn into a crawl with no error anywhere. */
+let lastFrame = performance.now(), dt = 0.016;
+function tick(){
+  const now = performance.now();
+  dt = Math.min(0.05, (now - lastFrame)/1000);   // a clamp, so a background tab does not jump
+  lastFrame = now;
+}
+
+function forgeStage(){
+  FORGE.t += dt;
+  const el = FORGE.t - FORGE.t0;
+  switch(FORGE.state){
+    case 'select': return null;
+    case 'burn':   if(el >= BURN){ FORGE.state='wait';   FORGE.t0=FORGE.t; forgeUI(); }
+                   return null;
+
+    case 'wait':   if(el >= WAIT){ FORGE.state='settle'; FORGE.t0=FORGE.t; forgeUI(); } return null;
+    case 'settle': if(el >= SETTLE){ FORGE.state='out';  FORGE.t0=FORGE.t; forgeUI(); } return null;
+    default:       return FORGE.result;
+  }
+}
+
+function forgeParticles(){
+  const P = FORGE.parts; if(!P || FORGE.state==='select' || FORGE.state==='out') return;
+  const el = FORGE.t - FORGE.t0, C = 17;
+  for(const p of P){
+    let x, y;
+    if(FORGE.state === 'burn'){
+      const u = Math.max(0, Math.min(1, (el - p.d) / (BURN - 0.25)));
+      if(u < 0.5){ const e = ease(u*2);                       // in: everything falls into the fire
+        x = p.sx + (C-p.sx)*e; y = p.sy + (C-p.sy)*e; }
+      else { const e = ease(u*2-1);                           // out: it lands, but not in order
+        x = C + (p.mx-C)*e; y = C + (p.my-C)*e; }
+    } else if(FORGE.state === 'wait'){
+      x = p.mx + Math.sin(FORGE.t*3 + p.tx)*0.06; y = p.my + Math.cos(FORGE.t*2.6 + p.ty)*0.06;
+    } else { const e = ease(Math.min(1, el/SETTLE));          // the salt arrives, it settles
+      x = p.mx + (p.tx-p.mx)*e; y = p.my + (p.ty-p.my)*e; }
+    cx.fillStyle = p.c;
+    cx.fillRect(Math.round(x*Z), Math.round(y*Z), Z+1, Z+1);
+  }
+  // the flash at the moment the inputs stop existing
+  if(FORGE.state === 'burn'){
+    const f = 1 - Math.min(1, Math.abs(el - BURN*0.5) / 0.22);
+    if(f > 0){ cx.fillStyle = 'rgba(255,255,255,'+(f*0.75)+')'; cx.fillRect(0,0,N*Z,N*Z); }
+  }
+}
+
+function at(e){
+  const b = cv.getBoundingClientRect();
+  const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+  const k = b.width / (cv.width / (window.devicePixelRatio||1));
+  mx = (t.clientX-b.left-PAD*k)/(cell*k); my = (t.clientY-b.top-PAD*k)/(cell*k);
+  return (mx<0||my<0||mx>=N||my>=N) ? -1 : ((my|0)*N + (mx|0));
+}
+let dragging = false;
+function dn(e){
+  if(view === 'turn'){                       // the handle is grabbed, not clicked
+    at(e); const h = VAULT.handle();
+    if(Math.hypot(mx-h.x, my-h.y) < 3.5){ dragging = true; e.preventDefault(); }
+    return;
+  }
+  if(!toy()) return; e.preventDefault(); held = at(e); grab = 0; px = mx*Z; py = my*Z;
+}
+function mv(e){
+  at(e);
+  if(dragging){
+    const p = VAULT.pivot();
+    let a = Math.atan2(my-p.y, mx-p.x) * 180/Math.PI;
+    VAULT.lever = Math.max(0, Math.min(1, (a + 86) / 140));
+  }
+}
+function up(e){
+  if(view === 'turn'){ dragging = false; return; }
+  if(!toy()) return;
+  const t = at(e);
+  if(held>=0 && t>=0 && t!==held){
+    const v = grid[t]; grid[t] = grid[held]; grid[held] = v;
+    fa = held; fb = t; flash = 1;
+  }
+  held = -1;
+}
+cv.addEventListener('mousedown', dn);
+cv.addEventListener('mousemove', mv);
+cv.addEventListener('mouseleave', () => { mx = my = -9; });
+window.addEventListener('mouseup', up);
+/* 📱 TOUCH. On a phone the art fills most of the first screen, and grabbing a block on touchstart
+   swallowed the finger: the page could not be scrolled from the art at all. So on touch a DRAG
+   scrolls the page, and the toy works by TAPS: the first tap lifts a block, the second puts it
+   down there and the two swap. A tap on the lifted block puts it back. The mouse keeps drag-to-swap. */
+let tapStart = null;
+cv.addEventListener('touchstart', e => {
+  if(view === 'turn'){ dn(e); return; }          // the lever is still grabbed and pulled
+  const t = e.touches[0]; tapStart = {x:t.clientX, y:t.clientY};
+}, {passive:false});
+cv.addEventListener('touchmove', e => { if(view === 'turn') mv(e); }, {passive:false});
+cv.addEventListener('touchend', e => {
+  if(view === 'turn'){ up(e); return; }
+  const s = tapStart; tapStart = null;
+  const t = e.changedTouches[0];
+  if(!s || !toy() || Math.hypot(t.clientX-s.x, t.clientY-s.y) > 10) return;   // it was a scroll
+  e.preventDefault();                            // a tap: no synthetic mouse click after it
+  const k = at(e); if(k < 0) return;
+  if(held < 0){ held = k; grab = 0; px = mx*Z; py = my*Z; return; }
+  if(k !== held){
+    const v = grid[k]; grid[k] = grid[held]; grid[held] = v;
+    fa = held; fb = k; flash = 1;
+  }
+  held = -1;
+}, {passive:false});
+const resetEl = document.getElementById('reset');
+if(resetEl) resetEl.onclick = () => { if(base) grid = base.slice(); };
+
+window.addEventListener('mousemove', e => {
+  want.x =  (e.clientX/window.innerWidth  - .5) * 9;
+  want.y = -(e.clientY/window.innerHeight - .5) * 6;
+});
+window.addEventListener('resize', () => {
+  confetti(); sizeHero(); paintBG(); layStage();
+  turnM.size(); forgeM.size();
+  // a new window size moves every box on the page, so every block re-checks where it rests
+  relayBlocks();
+});
+
+/* ══ picking a piece repaints the whole interface in that piece's facet colour ════════════ */
+let curP = PIECES[0];
+async function select(n){ cur = n; return show(PIECES[n]); }
+/* show any piece on the stage: one of the seven on HOME, or one of the wallet's own on PROFILE */
+let lastMine = null;                     // the wallet piece last looked at, so PROFILE comes back to it
+async function show(p){
+  curP = p; if(p.wallet) lastMine = p;
+  base = await loadGrid(p.file);
+  grid = base.slice();
+  document.documentElement.style.setProperty('--accent', 'var(--'+p.facet+')');
+  // the room takes the piece's identity AND its colour: word, plinth, field, hand, confetti
+  const set = (id,txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  set('rFacet', p.facet);  set('rName', p.name);  set('rId', '#'+p.id);
+  // the giant word is the wordmark, not a readout, so it stays FACETS
+  set('qFacet', p.facet);  set('qName', p.name);  set('qId', 'FACETS #'+p.id);
+  set('qBucket', p.facet+' · '+(SUPPLY[p.facet]||0).toLocaleString('en-US'));
+  if(p.wallet){ pieceDetail(p); setGlow(base); }
+  [...document.querySelectorAll('#invGrid .invCard')]
+    .forEach(el => el.classList.toggle('on', +el.dataset.id === p.id));
+  paintBG(); layHand(); confetti(); relayBlocks();
+}
+
+/* ══ THE FORGE, LOCKED (gruff, 2026-10-07) ═════════════════════════════════════════════
+   The forge is closed on chain (forgeOpen = false), so the room must not pretend it works: the
+   pieces in the bar cannot be picked, the button says SOON, the hopper stays empty. Picking pieces
+   also made the page crawl, because every pick drew the chosen pieces into the machine each frame.
+   The bar shows the connected wallet's own pieces, or asks for a wallet. */
+const fstrip = document.getElementById('fstrip');
+function forgeUI(){
+  FORGE.sel = []; FORGE.state = 'select';
+  const cnt = document.getElementById('tbCount');
+  fstrip.innerHTML = '';
+  if(!WALLET.length){
+    fstrip.innerHTML = '<div class="stack tbMsg">' + (connected ? 'THIS WALLET HOLDS NO FACETS' : 'CONNECT A WALLET TO SEE YOUR PIECES HERE') + '</div>';
+    cnt.textContent = ''; return;
+  }
+  cnt.textContent = WALLET.length;
+  WALLET.forEach(p => {
+    const cell = document.createElement('div'); cell.className = 'tok';
+    cell.innerHTML = '<img loading="lazy" src="'+p.file+'" alt=""><div class="tokFoot"><s>#'+String(p.id).padStart(4,'0')+'</s></div>';
+    fstrip.appendChild(cell);
+  });
+}
+
+/* ══ THE BACKGROUND FIELD ════════════════════════════════════════════════════════════════
+   A colour field that fades out through an ORDERED DITHER, in blocks. Not a CSS gradient: the
+   collection's own art is full of 1-bit checkerboards, so a dithered edge is the one kind of
+   decoration that belongs here. Redrawn only when the facet or the window changes.            */
+const bg = document.getElementById('bg'), bgx = bg.getContext('2d');
+const BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];   // 4x4 ordered dither
+function mix(hex, t){                                            // toward paper, t = 0..1
+  const n = parseInt(hex.slice(1),16), p = [0xe8,0xe8,0xed];
+  const c = [n>>16&255, n>>8&255, n&255].map((v,i) => Math.round(v + (p[i]-v)*t));
+  return 'rgb('+c.join(',')+')';
+}
+function paintBG(){
+  const dpr = window.devicePixelRatio||1, W = innerWidth, H = innerHeight;
+  bg.width = W*dpr; bg.height = H*dpr; bg.style.width = W+'px'; bg.style.height = H+'px';
+  bgx.setTransform(dpr,0,0,dpr,0,0);
+  bgx.clearRect(0,0,W,H);
+  // PROFILE has its own light, taken from the piece; the blue cascade would fight it
+  if(view === 'profile') return;
+  // ACTIVITY is a feed to read, and a phone scrolls text over a fixed layer: the cascade only sits behind words there
+  if(view === 'activity' || view === 'dash' || innerWidth < 768) return;
+  const hex = '#0101ef';
+  const B = 16, band = Math.max(W,H)*0.135;
+  const ox = W*1.13, oy = -H*0.10, dx = -0.56, dy = 1;   // the line the cascade falls along
+  const dl = Math.hypot(dx,dy);
+  const full = mix(hex,0.42), soft = mix(hex,0.70), faint = mix(hex,0.88);
+  /* ⛔ THE CASCADE MUST NOT RUN UNDER A MACHINE. The renders carry their own flat paper, so any
+     pattern behind one is sliced off at the image's edge and the machine ends up sitting in a
+     visible rectangle. The stage is cut out of the field, with a soft margin. */
+  const room = document.querySelector('.room.on');
+  const st = room && room.querySelector('.roomStage');
+  let keep = null;
+  if(st){ const r = st.getBoundingClientRect();
+    if(r.width) keep = {x0:r.left-70, y0:r.top-40, x1:r.right+70, y1:r.bottom+40}; }
+  for(let y=0;y<H;y+=B) for(let x=0;x<W;x+=B){
+    if(keep){
+      const cxp = x+B/2, cyp = y+B/2;
+      const dx2 = Math.max(keep.x0-cxp, 0, cxp-keep.x1);
+      const dy2 = Math.max(keep.y0-cyp, 0, cyp-keep.y1);
+      const out = Math.hypot(dx2, dy2);
+      if(out < 90 && Math.random() > out/90) continue;
+    }
+    const px = x+B/2-ox, py = y+B/2-oy;
+    const u = Math.abs(px*dy - py*dx) / dl;             // distance from the falling line
+    const v = (1 - u/band) * Math.min(1, Math.max(0, (x/W - 0.44) * 2.6));
+    if(v <= 0.02) continue;
+    const th = (BAYER[(y/B|0)%4][(x/B|0)%4] + 0.5) / 16;
+    // sparse on purpose: the reference reads as a stream of separate blocks, not a painted band
+    if(v > 0.90)       bgx.fillStyle = (v-0.90)/0.10 > th*0.6 ? full : soft;
+    else if(v > 0.58)  bgx.fillStyle = (v-0.58)/0.32 > th ? soft : faint;
+    else if(v > 0.22)  { if((v-0.22)/0.36 < th) continue; bgx.fillStyle = faint; }
+    else               continue;
+    bgx.fillRect(x, y, B, B);
+  }
+}
+
+/* ══ THE HAND ════════════════════════════════════════════════════════════════════════════ */
+const hand = document.getElementById('hand');
+PIECES.forEach((p,n) => {
+  const im = new Image(); im.src = p.file; im.title = p.name+' · '+p.facet+' · #'+p.id;
+  im.onclick = () => select(n);
+  hand.appendChild(im);
+});
+function layHand(){
+  const els = [...hand.children], n = els.length;
+  els.forEach((el,i) => {
+    const off = i - (n-1)/2, on = (i === cur);
+    const rot = off * 4.0, lift = Math.abs(off)*Math.abs(off)*1.6 + (on ? -22 : 0);
+    el.style.transform = 'rotate('+rot+'deg) translateY('+lift+'px)'+(on?' scale(1.08)':'');
+    el.style.outlineColor = on ? getComputedStyle(document.documentElement)
+                                  .getPropertyValue('--accent').trim() : '#fff';
+    el.style.zIndex = on ? 8 : 1;
+  });
+}
+hand.addEventListener('mouseover', e => {
+  const el = e.target.closest('img'); if(!el) return;
+  el.style.transform = el.style.transform.replace(/ scale\([^)]*\)/,'') + ' scale(1.16)';
+});
+hand.addEventListener('mouseout', layHand);
+
+const spectrum = document.getElementById('spectrum');
+function buildSpectrum(){
+  const total = Object.values(SUPPLY).reduce((a,b) => a+b, 0) || 1;
+  spectrum.innerHTML = '';
+  ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'].forEach(f => {
+    const i = document.createElement('i');
+    i.style.background = 'var(--'+f+')';
+    i.style.width = Math.round(SUPPLY[f]/total*182)+'px';     // the real supply share, drawn to scale
+    i.title = f+' · '+SUPPLY[f];
+    spectrum.appendChild(i);
+  });
+}
+buildSpectrum();
+
+/* the slab is the piece's own colour, sitting under it like a plinth */
+// the plinth is gone; the tile's shadow is sized in sizeHero now. Kept as a no-op so the
+// half dozen call sites do not all have to be hunted down.
+function layStage(){}
+
+function setBar(id, pct){ const el = document.getElementById(id);
+  if(el) el.style.setProperty('--w', Math.max(0, Math.min(100, pct)) + '%'); }
+
+// seven dots, one per facet bucket, under NEXT WINNERS
+(function(){ const d = document.getElementById('winDots'); if(!d) return;
+  for(let i=0;i<7;i++) d.appendChild(document.createElement('i')); })();
+
+// the forge's own filter pills: everything, or just what is loaded in the chamber
+(function(){ const f = document.getElementById('fFilters'); if(!f) return;
+  ['ALL','SELECTED'].forEach((t,i) => { const el = document.createElement('span');
+    el.textContent = t; if(i===0) el.className='on';
+    el.onclick = () => { [...f.children].forEach(c => c.classList.toggle('on', c===el));
+      fstrip.dataset.only = (t === 'SELECTED') ? '1' : '';
+      [...fstrip.children].forEach((el,n) => {
+        el.style.display = (t==='SELECTED' && !FORGE.sel.includes(n)) ? 'none' : ''; }); };
+    f.appendChild(el); }); })();
+
+(function(){ const t=document.getElementById('tbToggle'); if(!t) return;
+  t.onclick = () => t.closest('.tokenBar').classList.toggle('shut'); })();
+
+(function(){ const b=document.getElementById('statsBtn'), sh=document.getElementById('statsSheet');
+  if(!b||!sh) return;
+  b.onclick = () => sh.classList.toggle('on');
+  document.getElementById('statsX').onclick = () => sh.classList.remove('on'); })();
+
+/* ══ views ═══════════════════════════════════════════════════════════════════════════════ */
+let view = 'home', connected = false;
+function swap(id, on){ document.getElementById(id).classList.toggle('hidden', !on); }
+
+/* ⛔ FOUR PAGES, AND EACH ONE IS ITS OWN. gruff, 2026-09-14: the turn and the forge each get
+   their own room, and everything about the person lives on PROFILE. The shared five-zone board is
+   gone. The landing carries small facts only. One canvas and one draw loop still: the stage MOVES
+   to whichever room needs it rather than being duplicated. */
+const ROOMS  = { home:'room', dash:'roomDash', turn:'roomTurn', forge:'roomForge', profile:'roomProfile', activity:'roomActivity' };
+const STAGES = { home:'roomStage', turn:'turnStage', forge:'forgeStageEl', profile:'profileStage' };
+
+function go(v){
+  view = v;
+  document.getElementById('infoSheet').classList.remove('on');
+  [...document.querySelectorAll('nav button')].forEach(b => b.classList.toggle('on', b.dataset.v===v));
+  { const on = document.querySelector('nav button.on'); if(on && innerWidth < 768) on.scrollIntoView({inline:'center', block:'nearest'}); }
+  for(const k in ROOMS) document.getElementById(ROOMS[k]).classList.toggle('on', k === v);
+
+  const host = document.getElementById(STAGES[v] || 'roomStage');
+  const wrap = document.getElementById('heroWrap');
+  const art = (v === 'home' || v === 'profile');
+  wrap.style.display = art ? '' : 'none';
+  const sh = document.getElementById('tileShadow');
+  if(sh) sh.style.display = art ? 'block' : 'none';
+  if(art){
+    if(host && wrap.parentElement !== host) host.appendChild(wrap);
+    sizeHero();
+  } else if(v === 'turn' || v === 'forge'){
+    const m = (v === 'turn') ? turnM : forgeM;
+    if(m.el.parentElement !== host) host.appendChild(m.el);
+    m.size();
+  }
+  // a machine that is not on screen must not keep decoding video
+  if(v !== 'turn')  turnM.play(false);
+  if(v !== 'forge') forgeM.play(false);
+  paintBG();
+
+  if(v === 'home'){
+    paintColl();
+    layHand();
+    if(curP !== PIECES[cur]) select(cur);    // back from a profile: the stage shows the seven again
+  }
+  /* the accent belongs to whatever the room is about: the pool is ETH, so THE TURN is blue and
+     turns gold the moment the lever can fire. Only the art rooms wear a facet colour. */
+  if(v === 'turn') document.documentElement.style.setProperty('--accent',
+    VAULT.level >= 1 ? 'var(--WHALE)' : 'var(--blue)');
+  if(v === 'home' || v === 'profile')
+    document.documentElement.style.setProperty('--accent', 'var(--'+curP.facet+')');
+  if(v === 'turn') setTimeout(() => { setBar('tBar', Math.max(VAULT.level*100, 0.6)); }, 240);
+  if(v === 'forge'){ forgeUI(); forgeStats(); }
+  if(v === 'profile') profileUI();
+  if(v === 'activity') activityUI();
+  if(v === 'dash') dashUI();
+  relayBlocks();
+}
+
+/* ══ THE COLLECTION, live: the pool, the supply, the holders, the facet sizes ═══════════════ */
+let COLL = null;
+const fmtEth = s => { const x = +s; return x >= 1 ? x.toFixed(2) : x.toFixed(4); };
+function paintColl(){
+  const el = id => document.getElementById(id);
+  if(!COLL){ setTimeout(() => setBar('rBar', 0.6), 240); return; }
+  const pool = +COLL.turn.pool, th = +COLL.turn.threshold, pct = th ? pool/th*100 : 0;
+  el('rNum').textContent  = fmtEth(pool);
+  el('rUnit').textContent = 'Ξ IN THE POOL · NEEDS ' + fmtEth(th);
+  el('rPct').textContent  = pct.toFixed(2) + '%';
+  setTimeout(() => setBar('rBar', Math.max(pct, 0.6)), 240);
+  el('hsSupply').textContent  = COLL.supply.toLocaleString('en-US');
+  el('hsHolders').textContent = COLL.holders.toLocaleString('en-US');
+  // THE TURN room shows the real pool too
+  VAULT.level = Math.min(1, pct/100);
+  el('tNum').textContent = fmtEth(pool);
+  setTimeout(() => setBar('tBar', Math.max(pct, 0.6)), 240);
+}
+async function loadColl(){
+  try { COLL = await fetch('/api/collection').then(r => { if(!r.ok) throw 0; return r.json(); }); }
+  catch { return; }
+  if(COLL.facets) for(const f in COLL.facets) SUPPLY[f] = COLL.facets[f];
+  buildSpectrum();
+  paintColl(); forgeStats();
+  if(curP) document.getElementById('qBucket').textContent = curP.facet+' · '+(SUPPLY[curP.facet]||0).toLocaleString('en-US');
+}
+
+/* ══ THE FORGE's numbers. Every one is arithmetic on the live facet counts, never a forecast:
+   a Prism burns one of each facet and forged pieces cannot go back in (allowForgedInputs = false),
+   so the rarest facet caps the Prisms; a Pure burns seven of one facet, so floor(count / 7) caps it. */
+function forgeStats(){
+  const el = id => document.getElementById(id);
+  const ORDER = ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'];
+  const counts = ORDER.map(f => [f, SUPPLY[f] || 0]);
+  const rarest = counts.reduce((m, c) => c[1] < m[1] ? c : m);
+  el('fPrism').textContent = rarest[1].toLocaleString('en-US');
+  el('fGhosts').textContent = rarest[1].toLocaleString('en-US');
+  el('fGhosts').parentNode.lastChild.textContent = ' ' + rarest[0] + 'S.';
+  const top = Math.max(...counts.map(c => Math.floor(c[1] / 7))) || 1;
+  el('fPures').innerHTML = counts.map(([f, n]) => { const k = Math.floor(n / 7);
+    return '<div class="pure"><i style="background:var(--'+f+');width:'+Math.max(6, k/top*100)+'%"></i><span class="stack">'+f+'</span><b>'+k+'</b></div>'; }).join('');
+  if(COLL){ el('fForged').textContent = Math.max(0, COLL.minted - COLL.nameSupply).toLocaleString('en-US');
+            el('fBurned').textContent = Math.max(0, COLL.minted - COLL.supply).toLocaleString('en-US'); }
+}
+
+/* ══ DASHBOARD ═══════════════════════════════════════════════════════════════════════════════
+   /api/dashboard is swept on the server every minute. The project's own two wallets are listed and
+   marked (ARTIST) / (TREASURY), never ranked (gruff, 2026-10-07). Bucket tickets count only tickets
+   that can win: THE TURN's excluded() is read per holder. */
+const DASH = { data:null, sort:'pieces', dir:-1, q:'', all:false, timer:null };
+const F7 = ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'];
+const n0 = x => Number(x).toLocaleString('en-US');
+function dashPulse(d){
+  const p = d.pulse, t = p.dist, tot = t.one + t.few + t.many + t.lots || 1;
+  const seg = (k, n, c) => '<i style="flex:'+Math.max(n, 0.0001)+';background:'+c+'" title="'+k+': '+n+'"></i>';
+  const tile = (k, v, sub) => '<div class="dTile"><span class="stack">'+k+'</span><b>'+v+'</b>'+(sub ? '<s class="stack">'+sub+'</s>' : '')+'</div>';
+  document.getElementById('dPulse').innerHTML =
+    tile('HOLDERS', n0(p.holders), 'OF ' + n0(p.pieces) + ' PIECES') +
+    tile('7/7 CLUB', n0(p.fullSet), 'HOLD ALL SEVEN FACETS') +
+    tile('21+ PIECES', n0(t.lots), 'THE BIGGEST HOLDERS') +
+    tile('ONE PIECE', n0(t.one), 'HOLD A SINGLE FACET') +
+    '<div class="dTile dDist"><span class="stack">HOW MANY EACH HOLDS</span><div class="dBar">' +
+      seg('1 PIECE', t.one, 'var(--GHOST)') + seg('2-5', t.few, 'var(--NEWBIE)') + seg('6-20', t.many, 'var(--COLLECTOR)') + seg('21+', t.lots, 'var(--WHALE)') +
+    '</div><div class="dLegend stack"><span><i style="background:var(--GHOST)"></i>1 \u00b7 '+t.one+'</span><span><i style="background:var(--NEWBIE)"></i>2-5 \u00b7 '+t.few+'</span><span><i style="background:var(--COLLECTOR)"></i>6-20 \u00b7 '+t.many+'</span><span><i style="background:var(--WHALE)"></i>21+ \u00b7 '+t.lots+'</span></div></div>';
+  document.getElementById('dBlock').textContent = 'LIVE FROM MAINNET \u00b7 BLOCK ' + n0(d.block);
+}
+function dashTable(){
+  const d = DASH.data; if(!d) return;
+  const now = Date.now() / 1000, q = DASH.q;
+  let rows = d.holders.filter(h => !q || h.address.toLowerCase().includes(q) || (h.ens || '').toLowerCase().includes(q));
+  const key = { pieces: h => h.pieces, tickets: h => h.tickets, held: h => h.oldest ? -h.oldest : -1e12,
+                facets: h => Object.keys(h.facets).length * 1e5 + h.pieces, rarest: h => h.rarest ? -h.rarest.n : -1e9 }[DASH.sort];
+  // always the biggest first: most pieces, most tickets, longest held, most facets, rarest trait
+  rows = rows.slice().sort((a, b) => (key(b) - key(a)) || b.pieces - a.pieces);
+  const shown = DASH.all || q ? rows : rows.slice(0, 50);
+  const head = (k, t) => '<span class="dh'+(DASH.sort === k ? ' on' : '')+'" data-k="'+k+'">'+t+(DASH.sort === k ? ' \u2193' : '')+'</span>';
+  document.getElementById('dTable').innerHTML =
+    '<div class="dRow dHeadRow"><span>#</span><span>HOLDER</span>' + head('pieces','PIECES') + head('facets','FACETS') + head('held','HELD') + head('tickets','TICKETS') + head('rarest','RAREST') + '</div>' +
+    shown.map(h => {
+      const me = walletAddr && h.address.toLowerCase() === walletAddr.toLowerCase();
+      const dots = F7.map(f => '<i class="'+(h.facets[f] ? 'on' : '')+'" style="--c:var(--'+f+')" title="'+f+(h.facets[f] ? ' \u00b7 '+h.facets[f] : '')+'"></i>').join('');
+      const days = h.oldest ? Math.max(0, Math.floor((now - h.oldest) / 86400)) + 'D' : '\u00b7';
+      return '<a class="dRow'+(me ? ' me' : '')+(h.label ? ' isLabel' : '')+'" href="/?wallet='+h.address+'">' +
+        '<span class="dRank">'+(h.rank ? h.rank : '\u00b7')+'</span>' +
+        '<span class="dWho"><img loading="lazy" src="/api/art/'+(h.rarest ? h.rarest.id : 1)+'.svg?still=1" alt=""><b>'+esc(h.ens || short(h.address))+'</b>'+(h.label ? '<em>('+h.label+')</em>' : '')+(me ? '<em class="you">YOU</em>' : '')+'</span>' +
+        '<span class="dNum">'+n0(h.pieces)+'</span>' +
+        '<span class="dDots">'+dots+'</span>' +
+        '<span class="dNum">'+days+'</span>' +
+        '<span class="dNum">'+n0(h.tickets)+(h.excluded ? '<s class="stack">NOT IN DRAW</s>' : '')+'</span>' +
+        '<span class="dRare">'+(h.rarest ? esc(h.rarest.value)+'<s class="stack">'+h.rarest.n+' OF 2,222</s>' : '\u00b7')+'</span></a>'; }).join('');
+  document.getElementById('dCount').textContent = n0(rows.length);
+  document.getElementById('dMore').classList.toggle('hidden', DASH.all || !!q || rows.length <= 50);
+  document.querySelectorAll('#dTable .dh').forEach(el => el.onclick = () => { DASH.sort = el.dataset.k; dashTable(); });
+  relayBlocks();
+}
+async function dashLoad(){
+  try {
+    const d = await fetch('/api/dashboard').then(r => { if(!r.ok) throw 0; return r.json(); });
+    DASH.data = d; dashPulse(d); dashTable();
+  } catch { document.getElementById('dTable').innerHTML = '<div class="stack invMsg">THE CHAIN DID NOT ANSWER. TRY AGAIN IN A MOMENT.</div>'; }
+}
+function dashUI(){
+  if(!DASH.data) document.getElementById('dTable').innerHTML = '<div class="stack invMsg">READING EVERY HOLDER OFF THE CHAIN\u2026</div>';
+  dashLoad();
+  clearInterval(DASH.timer); DASH.timer = setInterval(() => { if(view === 'dash') dashLoad(); }, 60000);
+}
+document.getElementById('dMore').onclick = () => { DASH.all = true; dashTable(); };
+document.getElementById('dSearch').oninput = e => { DASH.q = e.target.value.trim().toLowerCase(); dashTable(); };
+
+/* ══ ACTIVITY ═══════════════════════════════════════════════════════════════════════════════
+   /api/activity reads the whole transfer history (alchemy_getAssetTransfers) and tells a SALE from a
+   TRANSFER by the payment in the transaction itself (ETH from the buyer, or WETH an accepted offer
+   moved). Before/after are the chain's own stills for that piece with the old and the new owner. */
+const ACT = { kind:'all', mine:false, id:null, next:null, newest:null, rows:[], timer:null, loading:false };
+const ZERO = '0x0000000000000000000000000000000000000000';
+const ago = t => { const s = Math.max(0, (Date.now() - Date.parse(t)) / 1000);
+  return s < 60 ? 'JUST NOW' : s < 3600 ? Math.floor(s/60)+'M AGO' : s < 86400 ? Math.floor(s/3600)+'H AGO' : Math.floor(s/86400)+'D AGO'; };
+const fmtPay = x => x >= 1 ? x.toFixed(3) : x >= 0.01 ? x.toFixed(4) : x.toFixed(5).replace(/0+$/, '');
+function who(a, ens){
+  if(a === ZERO) return '<span class="aAddr">MINT</span>';
+  const mine = walletAddr && a.toLowerCase() === walletAddr.toLowerCase();
+  return '<a class="aAddr'+(mine?' me':'')+'" href="/?wallet='+a+'" title="'+a+'">'+esc(ens[a] || short(a))+(mine?(walletView?' · THIS WALLET':' · YOU'):'')+'</a>';
+}
+function rowHTML(r, ens){
+  const fig = (owner, cap) => '<figure><img loading="lazy" src="/api/art/'+r.id+'.svg?owner='+owner+'" alt=""><figcaption class="stack">'+cap+'</figcaption></figure>';
+  const kind = r.kind === 'mint' ? '<b class="aKind mint">MINT</b>'
+    : r.sale ? '<b class="aKind sale">SALE · '+fmtPay(r.sale.eth)+' '+(r.sale.unit === 'ETH' ? 'Ξ' : 'WETH')+'</b>'+(r.sale.n > 1 ? '<s class="stack">EACH · '+r.sale.n+' IN ONE TX</s>' : '')
+    : '<b class="aKind">TRANSFER</b>';
+  return '<div class="aRow'+(r.fresh?' fresh':'')+'" style="--c:var(--'+(r.facet||'blue')+')">' +
+    '<div class="aArt">' + (r.kind === 'mint' ? fig(r.to, 'MINTED TO') : fig(r.from, 'BEFORE') + '<i class="aArrow">→</i>' + fig(r.to, 'AFTER')) + '</div>' +
+    '<div class="aInfo"><div class="aTop">'+kind+'</div>' +
+    '<div class="aPiece"><i class="fdot" style="background:var(--'+(r.facet||'blue')+')"></i><b>'+esc(String(r.name||'').replace(/ #\d+$/, ''))+'</b><s class="stack">#'+r.id+' · '+(r.facet||'')+'</s></div>' +
+    '<div class="aWho">'+who(r.from, ens)+'<span class="stack">→</span>'+who(r.to, ens)+'</div>' +
+    '<div class="aMeta stack"><span>'+ago(r.time)+'</span><a href="https://etherscan.io/tx/'+r.hash+'" target="_blank" rel="noopener">TX ↗</a></div></div></div>';
+}
+function actQuery(extra){
+  const q = new URLSearchParams({ kind: ACT.kind });
+  if(ACT.mine && walletAddr) q.set('addr', walletAddr);
+  if(ACT.id) q.set('id', ACT.id);
+  for(const k in (extra||{})) q.set(k, extra[k]);
+  return '/api/activity?' + q;
+}
+async function loadActivity(more){
+  if(ACT.loading) return; ACT.loading = true;
+  const list = document.getElementById('aList');
+  if(!more){ list.innerHTML = '<div class="stack invMsg">READING THE CHAIN…</div>'; ACT.rows = []; }
+  try {
+    const j = await fetch(actQuery(more && ACT.next ? { before: ACT.next } : null)).then(r => r.json());
+    if(!more) list.innerHTML = '';
+    ACT.next = j.next; if(!more) ACT.newest = j.rows[0] && j.rows[0].key;
+    list.insertAdjacentHTML('beforeend', j.rows.map(r => rowHTML(r, j.ens)).join(''));
+    ACT.rows.push(...j.rows);
+    if(!ACT.rows.length) list.innerHTML = '<div class="stack invMsg">NOTHING HERE YET</div>';
+    document.getElementById('aMore').classList.toggle('hidden', !ACT.next);
+  } catch { list.innerHTML = '<div class="stack invMsg">THE CHAIN DID NOT ANSWER. TRY AGAIN IN A MOMENT.</div>'; }
+  ACT.loading = false; relayBlocks();
+}
+// live: every 20s, anything newer than the top row slides in on top
+async function pollActivity(){
+  if(view !== 'activity' || ACT.loading || !ACT.newest) return;
+  try {
+    const j = await fetch(actQuery()).then(r => r.json());
+    const fresh = []; for(const r of j.rows){ if(r.key === ACT.newest) break; fresh.push({ ...r, fresh:true }); }
+    if(!fresh.length) return;
+    ACT.newest = j.rows[0].key;
+    document.getElementById('aList').insertAdjacentHTML('afterbegin', fresh.map(r => rowHTML(r, j.ens)).join(''));
+    ACT.rows.unshift(...fresh); relayBlocks();
+  } catch {}
+}
+function activityUI(){
+  const f = document.getElementById('aFilters');
+  const opts = [['all','ALL'],['sale','SALES'],['transfer','TRANSFERS'],['mint','MINTS']];
+  f.innerHTML = opts.map(([k, t]) => '<span data-k="'+k+'" class="'+(ACT.kind===k?'on':'')+'">'+t+'</span>').join('') +
+    (walletAddr ? '<span data-k="mine" class="mineBtn'+(ACT.mine?' on':'')+'">ONLY MINE</span>' : '');
+  f.onclick = e => { const b = e.target.closest('span'); if(!b) return;
+    if(b.dataset.k === 'mine') ACT.mine = !ACT.mine; else ACT.kind = b.dataset.k;
+    activityUI(); };
+  if(!walletAddr) ACT.mine = false;
+  loadActivity(false);
+  clearInterval(ACT.timer); ACT.timer = setInterval(pollActivity, 20000);
+}
+document.getElementById('aMore').onclick = () => loadActivity(true);
+document.getElementById('aSearch').oninput = e => {
+  const v = e.target.value.replace(/\D/g, ''); clearTimeout(ACT.st);
+  ACT.st = setTimeout(() => { ACT.id = v ? Number(v) : null; loadActivity(false); }, 350);
+};
+
+/* ══ THE (i): how THE TURN and THE FORGE work, in one place instead of five ═════════════════
+   gruff, 2026-10-07: the rooms repeated themselves (seven winners was said four times on THE TURN).
+   Each line here was read off the deployed contracts (SITE_PLAN.md, NUMBERS.md), not remembered. */
+const INFO = {
+  turn: { title:'THE TURN', rows:[
+    ['THE POOL', '6% of every secondary sale: 60% of the 10% royalty.'],
+    ['THE LEVER', 'Once the pool passes the threshold, any holder can pull it and takes 1% of the pot.'],
+    ['THE WINNERS', 'Chainlink VRF draws seven, one per facet.'],
+    ['TICKETS', 'One per day held, up to 14, times the piece’s faces.'],
+    ['AFTER A TURN', 'The threshold rises by 0.25 Ξ and the lever rests for a day.'],
+  ], link:['THE CONTRACT', 'https://etherscan.io/address/0x53bDA64160DeD9b52f895076a73F0B542332b41A'] },
+  forge: { title:'THE FORGE', rows:[
+    ['THE BURN', '2 to 7 pieces become one new piece, in one transaction.'],
+    ['THE RESULT', 'Unknown until it lands: nobody can see it before burning.'],
+    ['THREE TYPES', 'Pure: 7 of one facet. Prism: 7 different facets. Mixed: everything else.'],
+    ['YOUR TICKETS', 'Forging adds none. It moves them into one facet’s draw and keeps your oldest clock.'],
+    ['FOR GOOD', 'Burned pieces cannot be returned.'],
+  ], link:['THE CONTRACT', 'https://etherscan.io/address/0x440BD58621537277f75E18502958AC41e76dA4C7'] },
+};
+function openInfo(k){
+  const d = INFO[k], sh = document.getElementById('infoSheet');
+  document.getElementById('infoTitle').textContent = d.title;
+  document.getElementById('infoBody').innerHTML = d.rows.map(([h, t]) =>
+    '<div class="infoRow"><b>'+h+'</b><span>'+t+'</span></div>').join('') +
+    '<a class="infoLink" href="'+d.link[1]+'" target="_blank" rel="noopener">'+d.link[0]+' ↗</a>';
+  sh.classList.add('on'); relayBlocks();
+}
+document.querySelectorAll('.infoBtn').forEach(b => b.onclick = () => openInfo(b.dataset.info));
+document.getElementById('infoX').onclick = () => { document.getElementById('infoSheet').classList.remove('on'); relayBlocks(); };
+
+document.getElementById('connect').onclick    = () => connectWallet();
+document.getElementById('disconnect').onclick = () => setConnected(false);
+document.getElementById('mark').onclick       = () => go('home');
+document.getElementById('nav').onclick = e => { const b = e.target.closest('button'); if(b) go(b.dataset.v); };
+// a zone is a door only on the way in; inside a tab the same box is holding that tab's own content
+[...document.querySelectorAll('.door,.pill')].forEach(d => d.onclick = () => { if(view==='home') go(d.dataset.go); });
+
+/* ══ THE MACHINES ════════════════════════════════════════════════════════════════════════
+   gruff chose the rendered machines over the block-built ones on 2026-09-14. So each machine is
+   three layers stacked in one box: the still (idle), the video (running), and OUR canvas on top,
+   which carries everything that has to be true — the pieces in the hopper, the liquid level, the
+   lever's angle, the lit winner slots, the result.
+
+   ⛔ EVERY ANCHOR BELOW WAS MEASURED OFF THE ASSET, NOT GUESSED, and then drawn back over the
+   image and looked at. If an asset is ever regenerated, every number here is void.
+   ⚠️ The renders are 1672x941. All anchors are in THAT space; the overlay scales to fit.        */
+const ASSET_W = 1672, ASSET_H = 941;
+
+const M = {
+  forge: {
+    still:'assets/forgestatik.png', video:'assets/forgeanimate.mp4',
+    // the seven hopper bins, left to right. Seven, which is the burn ceiling, by luck not design
+    bins:[[483,570],[587,673],[690,776],[792,879],[896,982],[999,1085],[1102,1189]],
+    binY:[268,354],
+    window:[688,414,983,635],          // the dark chamber door: x0,y0,x1,y1
+    tray:{back:[651,1019], front:[596,1078], y0:745, y1:800}
+  },
+  turn: {
+    still:'assets/turnstatik.png', video:'assets/turnanimate.mp4', lever:'assets/turnkol.png',
+    glass:{x0:598, x1:1050, top:305, bottom:628, ry:26},
+    slots:[[525,592],[599,676],[689,768],[783,865],[880,960],[972,1048],[1057,1124]],
+    slotY:[716,778],
+    pivot:[1147,528],                  // where the lever turns, on the machine's own hub
+    leverLen:0.33                      // the lever's height as a fraction of the asset width
+  }
+};
+
+/* One machine = one box holding still + two videos + overlay. Two videos because a generated clip
+   does NOT loop: measured on both of ours, the last frame is as far from the first as any random
+   frame is. Crossfading a second copy over the seam hides it completely, and costs one decode. */
+class Machine {
+  constructor(cfg){
+    this.cfg = cfg;
+    const el = this.el = document.createElement('div');
+    el.className = 'machine';
+    el.innerHTML =
+      '<img class="mStill" src="'+cfg.still+'" alt="">' +
+      '<video class="mVid" src="'+cfg.video+'" muted playsinline preload="auto"></video>' +
+      '<video class="mVid" src="'+cfg.video+'" muted playsinline preload="auto"></video>' +
+
+      '<canvas class="mOver"></canvas><div class="mFade"></div>';
+    this.still = el.querySelector('.mStill');
+    this.vids  = [...el.querySelectorAll('.mVid')];
+    this.leverEl = el.querySelector('.mLever');
+    this.cv = el.querySelector('.mOver');
+    this.cx = this.cv.getContext('2d');
+    this.active = 0; this.playing = false; this.FADE = 0.5;
+    this.vids.forEach(v => { v.addEventListener('ended', () => {}); });
+  }
+  size(){
+    const host = this.el.parentElement;
+    if(host){
+      const box = host.getBoundingClientRect();
+      if(box.width && box.height){
+        const ar = ASSET_W / ASSET_H;
+        let w = box.width, h = w / ar;
+        if(h > box.height){ h = box.height; w = h * ar; }
+        this.el.style.width = Math.floor(w) + 'px';
+        this.el.style.height = Math.floor(h) + 'px';
+      }
+    }
+    const r = this.el.getBoundingClientRect();
+    if(!r.width) return;
+    const dpr = window.devicePixelRatio || 1;
+    this.cv.width = Math.round(r.width*dpr); this.cv.height = Math.round(r.height*dpr);
+    this.s = r.width / ASSET_W;                      // asset space → screen space
+    this.cx.setTransform(dpr*this.s, 0, 0, dpr*this.s, 0, 0);
+  }
+  play(on){
+    if(on === this.playing) return;
+    this.playing = on;
+    this.el.classList.toggle('running', on);
+    if(on){ const v = this.vids[0]; v.currentTime = 0; v.style.opacity = 1;
+            this.vids[1].style.opacity = 0; this.active = 0; v.play().catch(()=>{}); }
+    else  { this.vids.forEach(v => { v.pause(); v.style.opacity = 0; }); }
+  }
+  /* the crossfade driver: when the visible clip is FADE from its end, the other starts from zero
+     and takes over. Nobody ever sees the seam because the seam is never on screen alone. */
+  tickVideo(){
+    if(!this.playing) return;
+    const a = this.vids[this.active], b = this.vids[1-this.active];
+    if(!a.duration) return;
+    const left = a.duration - a.currentTime;
+    if(left <= this.FADE){
+      if(b.paused){ b.currentTime = 0; b.play().catch(()=>{}); }
+      const t = 1 - (left / this.FADE);
+      b.style.opacity = t; a.style.opacity = 1 - t;
+      if(left <= 0.03){ a.pause(); a.style.opacity = 0; b.style.opacity = 1; this.active = 1-this.active; }
+    }
+  }
+  clear(){ this.cx.clearRect(0,0,ASSET_W,ASSET_H); }
+}
+
+/* ── drawing an artwork into a measured rectangle of the render ───────────────────────────── */
+function gridToCanvas(g, px, py, w, h, cx, inset){
+  if(!g) return;
+  const cell = Math.min(w, h) / N, ox = px + (w - cell*N)/2, oy = py + (h - cell*N)/2;
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    const c = g[j*N+i]; if(!c) continue;
+    cx.fillStyle = c;
+    cx.fillRect(ox + i*cell, oy + j*cell, Math.ceil(cell)+0.5, Math.ceil(cell)+0.5);
+  }
+  if(inset){ cx.strokeStyle='rgba(255,255,255,.35)'; cx.lineWidth=1.5;
+             cx.strokeRect(ox, oy, cell*N, cell*N); }
+}
+
+/* ⛔ THE LEVER ASSET IS NOT TRANSPARENT. It arrived on the same flat paper as everything else,
+   so dropped on the machine it is a white rectangle over the tank. The background is keyed out
+   here, with a soft ramp so the brushed-steel edges do not get a halo, and the HUB is found by
+   looking for the widest row in the lower third: that row is the axle, and the arm has to turn
+   about it rather than about the bottom of the picture. */
+async function keyLever(img){
+  const im = new Image(); im.src = img; await im.decode();
+  const w = im.naturalWidth, h = im.naturalHeight;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d', {willReadFrequently:true}); x.drawImage(im,0,0);
+  const d = x.getImageData(0,0,w,h), p = d.data;
+  const bg = [p[0],p[1],p[2]];
+  const widths = new Array(h).fill(0);
+  for(let y=0;y<h;y++){
+    for(let xx=0;xx<w;xx++){
+      const i=(y*w+xx)*4;
+      const diff = Math.max(Math.abs(p[i]-bg[0]), Math.abs(p[i+1]-bg[1]), Math.abs(p[i+2]-bg[2]));
+      const a = diff <= 5 ? 0 : diff >= 15 ? 255 : Math.round((diff-5)/10*255);
+      p[i+3] = a;
+      if(a > 140) widths[y]++;
+    }
+  }
+  x.putImageData(d,0,0);
+  let hub = h-1, best = -1;
+  for(let y=Math.floor(h*0.62); y<h; y++) if(widths[y] > best){ best = widths[y]; hub = y; }
+  return { src:c.toDataURL('image/png'), hubPct:(hub/h)*100 };
+}
+
+const forgeM = new Machine(M.forge);
+const turnM  = new Machine(M.turn);
+if(M.turn.lever) keyLever(M.turn.lever).then(r => {
+  // the lever <img> is not in the machine's markup any more; without the guard this threw on every load
+  if(turnM.leverEl){ turnM.leverEl.src = r.src; } turnM.leverHub = r.hubPct;
+});
+
+const GRIDS  = {};                       // token art, kept as 35x35 colour arrays, loaded once
+async function gridOf(n){
+  if(!GRIDS[n]) GRIDS[n] = await loadGrid(PIECES[n].file);
+  return GRIDS[n];
+}
+PIECES.forEach((p,n) => gridOf(n));
+
+/* ── THE FORGE overlay ───────────────────────────────────────────────────────────────────── */
+function drawForgeMachine(){
+  const m = forgeM, c = m.cx, cfg = M.forge;
+  m.clear();
+  const st = FORGE.state;
+  m.play(true);                                   // locked, but the fire idles, like THE TURN's drip
+
+  if(st === 'select'){
+    FORGE.sel.forEach((idx,k) => {
+      const [bx0,bx1] = cfg.bins[k], [by0,by1] = cfg.binY;
+      c.save();
+      c.shadowColor = 'rgba(0,0,0,.55)'; c.shadowBlur = 10; c.shadowOffsetY = 4;
+      gridToCanvas(GRIDS[idx], bx0+5, by0+7, (bx1-bx0)-10, (by1-by0)-14, c, true);
+      c.restore();
+    });
+    return;
+  }
+  if(st === 'burn'){
+    // the pieces leave the bins and fall into the chamber. After this nothing of ours is on the
+    // machine, which is exactly why the video is free to shake the whole thing.
+    const el = FORGE.t - FORGE.t0, u = Math.min(1, el/1.1);
+    const [wx0,wy0,wx1,wy1] = cfg.window;
+    const tx = (wx0+wx1)/2, ty = (wy0+wy1)/2;
+    FORGE.sel.forEach((idx,k) => {
+      const [bx0,bx1] = cfg.bins[k], [by0,by1] = cfg.binY;
+      const w = (bx1-bx0)-10, h = (by1-by0)-14;
+      const e = ease(Math.min(1, Math.max(0, (u - k*0.05)/0.8)));
+      const px = (bx0+5) + (tx - w/2 - (bx0+5))*e;
+      const py = (by0+7) + (ty - h/2 - (by0+7))*e;
+      c.save(); c.globalAlpha = 1 - e*0.85;
+      gridToCanvas(GRIDS[idx], px, py, w*(1-e*0.4), h*(1-e*0.4), c, false);
+      c.restore();
+    });
+    return;
+  }
+  if(st === 'settle' || st === 'out'){
+    /* ⛔ THE REVEAL IS THE WHOLE POINT, so the machine gets out of the way for it. The piece
+       lands one block at a time, in a random order, on white: a forged piece really is unknown
+       until its salt arrives, and this is the only moment the holder finds out what they made. */
+    const el = FORGE.t - FORGE.t0;
+    const p  = st === 'out' ? 1 : Math.min(1, el/SETTLE);
+    m.el.classList.add('revealing');
+    const size = Math.min(ASSET_W, ASSET_H) * 0.62;
+    const px = (ASSET_W - size)/2, py = (ASSET_H - size)/2;
+    const cell = size / N;
+    c.save();
+    c.shadowColor = 'rgba(16,18,26,.28)'; c.shadowBlur = 46; c.shadowOffsetY = 22;
+    c.fillStyle = '#fff'; c.fillRect(px-14, py-14, size+28, size+28);
+    c.restore();
+    const g = FORGE.result || [];
+    const order = FORGE.revealOrder || [];
+    const upto = Math.floor(p * order.length);
+    for(let i=0;i<upto;i++){
+      const k = order[i]; const col = g[k]; if(!col) continue;
+      const ix = k % N, iy = (k / N) | 0;
+      c.fillStyle = col;
+      c.fillRect(px + ix*cell, py + iy*cell, Math.ceil(cell)+0.5, Math.ceil(cell)+0.5);
+    }
+    // the block that just landed gets a flash, so the eye follows the build
+    for(let i=Math.max(0,upto-9); i<upto; i++){
+      const k = order[i]; const ix = k % N, iy = (k / N) | 0;
+      c.globalAlpha = (i - (upto-9)) / 9 * 0.5;
+      c.fillStyle = '#fff';
+      c.fillRect(px + ix*cell, py + iy*cell, Math.ceil(cell)+0.5, Math.ceil(cell)+0.5);
+    }
+    c.globalAlpha = 1;
+    return;
+  }
+  m.el.classList.remove('revealing');
+}
+
+/* ── THE TURN overlay ────────────────────────────────────────────────────────────────────── */
+function drawTurnMachine(){
+  const m = turnM, c = m.cx, g = M.turn.glass;
+  m.clear();
+  m.play(true);                                   // the drip idles forever
+
+  const cxm = (g.x0+g.x1)/2, rx = (g.x1-g.x0)/2;
+  const lvl = Math.min(1, VAULT.level);
+  const surface = g.bottom - lvl*(g.bottom-g.top);
+
+  if(lvl > 0.002){
+    /* ⛔ A CYLINDER IS NOT A BOX. The first version filled a rectangle and capped it with one
+       ellipse, which read as a flat sticker. A real body of liquid in a glass cylinder needs the
+       BACK of the surface to curve up behind the front, the near wall to be lighter than the far
+       one, and the floor to be an ellipse too. The ellipse also has to grow as the level rises,
+       because the camera looks slightly down: the surface is seen flatter near the bottom. */
+    const wob = Math.sin(VAULT.t*1.15)*1.6;
+    const sy  = surface + wob;
+    const ryT = g.ry * (0.62 + 0.38*lvl);      // the surface opens up as it comes toward the eye
+    c.save();
+    // the body. Its TOP is the front half of the surface ellipse, not a straight line: that one
+    // detail is the difference between liquid in a cylinder and a rectangle of blue paint.
+    const grad = c.createLinearGradient(g.x0, 0, g.x1, 0);
+    grad.addColorStop(0,   '#0a1fd6');
+    grad.addColorStop(0.22,'#2348ff');
+    grad.addColorStop(0.55,'#0101ef');
+    grad.addColorStop(1,   '#000f9c');
+    c.beginPath();
+    c.ellipse(cxm, sy, rx, ryT, 0, Math.PI, 0, true);          // the near edge, curving down
+    c.lineTo(cxm+rx, g.bottom);
+    c.ellipse(cxm, g.bottom, rx, g.ry, 0, 0, Math.PI, false);  // the floor, curving down
+    c.lineTo(cxm-rx, sy);
+    c.closePath();
+    c.fillStyle = grad; c.fill();
+
+    // the surface itself, a full ellipse lying on top of the body
+    c.beginPath(); c.ellipse(cxm, sy, rx, ryT, 0, 0, Math.PI*2);
+    c.fillStyle = '#5b78ff'; c.fill();
+    c.beginPath(); c.ellipse(cxm, sy - ryT*0.18, rx*0.78, ryT*0.62, 0, 0, Math.PI*2);
+    c.fillStyle = 'rgba(190,205,255,.30)'; c.fill();           // the light lying across it
+    c.restore();
+
+    // the meniscus: a bright line where the liquid meets the glass, drawn over everything
+    c.save();
+    c.beginPath(); c.ellipse(cxm, sy, rx, ryT, 0, 0, Math.PI*2);
+    c.strokeStyle = 'rgba(190,205,255,.85)'; c.lineWidth = 3; c.stroke();
+    c.restore();
+  }
+
+  // the seven winner slots. Dark until a turn has paid out, then one lit per facet.
+  const cs = getComputedStyle(document.documentElement);
+  const FACETS = ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'];
+  if(TURNUI.winners){
+    M.turn.slots.forEach(([a,b],i) => {
+      const col = cs.getPropertyValue('--'+FACETS[i]).trim() || '#fff';
+      const [y0,y1] = M.turn.slotY;
+      c.save(); c.globalAlpha = 0.55 + Math.sin(VAULT.t*2 + i)*0.12;
+      c.fillStyle = col; c.fillRect(a+4, y0+4, (b-a)-8, (y1-y0)-8);
+      c.restore();
+    });
+  }
+
+  // the lever is a separate image, turned about the hub we measured on the body
+  if(m.leverEl){
+    const [px,py] = M.turn.pivot;
+    const deg = 10 + VAULT.lever*72;
+    m.leverEl.style.left = (px/ASSET_W*100)+'%';
+    m.leverEl.style.top  = (py/ASSET_H*100)+'%';
+    m.leverEl.style.height = (M.turn.leverLen*100)+'%';
+    const hub = m.leverHub || 100;
+    m.leverEl.style.transformOrigin = '50% ' + hub + '%';
+    m.leverEl.style.transform = 'translate(-50%,-' + hub + '%) rotate('+deg.toFixed(2)+'deg)';
+  }
+}
+const TURNUI = { winners:false };
+
+/* the lever is dragged, not clicked. Angle comes from the pivot we measured on the body, so the
+   arm turns on the machine's own hub rather than on some point that merely looks right. */
+(function leverDrag(){
+  const m = turnM;
+  const angle = e => {
+    const r = m.el.getBoundingClientRect();
+    const px = r.left + (M.turn.pivot[0]/ASSET_W)*r.width;
+    const py = r.top  + (M.turn.pivot[1]/ASSET_H)*r.height;
+    const t = (e.touches && e.touches[0]) || e;
+    let a = Math.atan2(t.clientY-py, t.clientX-px) * 180/Math.PI;   // -90 is straight up
+    return Math.max(0, Math.min(1, (a + 80) / 72));
+  };
+  const down = e => { if(!m.leverEl) return; dragging = true; e.preventDefault(); };
+  const move = e => { if(dragging) VAULT.lever = angle(e); };
+  const up   = () => { dragging = false; };
+  m.el.addEventListener('mousedown', e => { if(e.target === m.leverEl) down(e); });
+  m.el.addEventListener('touchstart', e => { if(e.target === m.leverEl) down(e); }, {passive:false});
+  window.addEventListener('mousemove', move);
+  window.addEventListener('touchmove', move, {passive:false});
+  window.addEventListener('mouseup', up); window.addEventListener('touchend', up);
+})();
+
+/* ══ PROFILE ═════════════════════════════════════════════════════════════════════════════
+   Everything about the person, in one place. Built after the reference gruff brought on
+   2026-09-14, minus four things from it that would be untrue here: a multi-chain portfolio
+   (FACETS is Ethereum only), TYPE / RARITY / GENESIS (the metadata is facet + traits, and a
+   forged piece is Mixed, Pure or Prism), fragments and tools (they do not exist), and a
+   rank number (it needs the post-reveal trait sweep, so it says SOON instead of a guess).   */
+/* ══ THE WALLET ══════════════════════════════════════════════════════════════════════════
+   Connecting only READS an address: no signature, no transaction. Everything about the wallet is
+   then asked of our read server (/api/wallet), never of the wallet's own RPC, so the network the
+   wallet sits on does not change what the profile shows. It matters only for the transactions the
+   locked rooms will send one day, so a wrong network is pointed out, not enforced.
+   ?wallet=0x… opens any address read-only; the chain is public, so this shows nothing private. */
+const WALLET = [];                       // this wallet's pieces, as /api/wallet returns them
+let walletAddr = null, walletView = false, provider = null;
+let invFilter = 'ALL', invQuery = '';
+const filtersEl = document.getElementById('filters');
+const short = a => a.slice(0,6)+'…'+a.slice(-4).toUpperCase();
+const CORE_ADDR = '0xa219558E037063879315D6c0Dc37Aa29E1ed9F07';
+const osItem = id => 'https://opensea.io/assets/ethereum/'+CORE_ADDR+'/'+id;
+
+// EIP-6963: every installed wallet announces itself; the first to answer is used, window.ethereum otherwise
+const ANNOUNCED = [];
+window.addEventListener('eip6963:announceProvider', e => ANNOUNCED.push(e.detail));
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+const pickProvider = () => (ANNOUNCED[0] && ANNOUNCED[0].provider) || window.ethereum || null;
+
+function note(txt, action){              // one quiet line under the header, never on top of the content
+  const el = document.getElementById('walletNote');
+  el.classList.toggle('hidden', !txt);
+  el.querySelector('span').textContent = txt || '';
+  const b = el.querySelector('button');
+  b.classList.toggle('hidden', !action); if(action){ b.textContent = action.label; b.onclick = action.run; }
+  relayBlocks();
+}
+
+async function connectWallet(){
+  provider = pickProvider();
+  if(!provider){ note('NO WALLET FOUND IN THIS BROWSER'); return; }
+  try {
+    const accts = await provider.request({ method:'eth_requestAccounts' });
+    if(!accts || !accts.length) return;
+    try { localStorage.setItem('facetsLabConnected','1'); } catch {}
+    watchProvider();
+    await openWallet(accts[0], false);
+    checkChain();
+  } catch(e){ note(e && e.code === 4001 ? 'CONNECTION DECLINED IN THE WALLET' : 'THE WALLET DID NOT ANSWER'); }
+}
+function watchProvider(){
+  if(!provider || provider.__facetsWatched || !provider.on) return;
+  provider.__facetsWatched = true;
+  provider.on('accountsChanged', a => { if(walletView) return; a && a.length ? openWallet(a[0], false) : setConnected(false); });
+  provider.on('chainChanged', () => checkChain());
+}
+async function checkChain(){
+  if(!provider || walletView) return;
+  try {
+    const id = await provider.request({ method:'eth_chainId' });
+    if(id === '0x1') note(null);
+    else note('YOUR WALLET IS NOT ON ETHEREUM. READING WORKS, ACTIONS WILL NEED MAINNET', {label:'SWITCH',
+      run: () => provider.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0x1' }] }).catch(() => {}) });
+  } catch {}
+}
+
+async function openWallet(addr, viewOnly){
+  walletAddr = addr; walletView = viewOnly;
+  document.getElementById('walletChip').textContent = (viewOnly ? 'VIEWING ' : '') + short(addr);
+  setConnected(true);
+  const g = document.getElementById('invGrid'); g.innerHTML = '<div class="stack invMsg">READING THE CHAIN…</div>';
+  let w;
+  try { w = await fetch('/api/wallet/'+addr).then(r => { if(!r.ok) throw 0; return r.json(); }); }
+  catch { g.innerHTML = '<div class="stack invMsg">THE CHAIN DID NOT ANSWER. TRY AGAIN IN A MOMENT.</div>'; return; }
+  if(walletAddr !== addr) return;        // the wallet switched accounts while this was loading
+  WALLET.length = 0;
+  for(const t of w.tokens) WALLET.push({ ...t, facet:String(t.facet).toUpperCase(), wallet:true,
+                                          file:'/api/art/'+t.id+'.svg?still=1' });
+  profileFill(w);
+}
+
+function setConnected(on){ connected = on;
+  swap('connect', !on); swap('disconnect', on); swap('walletChip', on);
+  [...document.querySelectorAll('nav button')].forEach(b => {
+    if(b.dataset.v === 'profile') b.style.display = on ? '' : 'none';
+  });
+  if(!on){
+    walletAddr = null; walletView = false; WALLET.length = 0; note(null);
+    try { localStorage.removeItem('facetsLabConnected'); } catch {}
+    if(new URLSearchParams(location.search).has('wallet')) history.replaceState(null, '', location.pathname);
+    select(cur);
+  }
+  go(on ? 'profile' : 'home');
+}
+
+/* ══ THE PROFILE, from the chain. Nothing on it is invented: no rank, no badges, no activity
+      until each of those can be read. gruff, 2026-10-07: less is more, one thing per place, a
+      little colour, and it should feel like THEIR page: the ENS name when there is one, the seven
+      facets lit by what they hold, and a soft light behind the piece in the piece's own colours. */
+const daysSince = t => t ? Math.max(0, Math.floor((Date.now()/1000 - t) / 86400)) : null;
+const esc = s => String(s).replace(/[<&]/g, c => c === '<' ? '&lt;' : '&amp;');
+function profileFill(w){
+  const $ = id => document.getElementById(id);
+  const n = WALLET.length, facets = new Set(WALLET.map(p => p.facet));
+  // the name: their ENS when it resolves both ways, the short address otherwise
+  $('pName').textContent = w.ens || short(w.address);
+  $('pAddrTxt').textContent = short(w.address);
+  $('pAddr').classList.toggle('hidden', !w.ens);
+  $('pPieces').textContent = n.toLocaleString('en-US');
+  $('pFacets').textContent = facets.size + '/7';
+  const oldest = WALLET.reduce((m,p) => Math.max(m, daysSince(p.heldSince) || 0), 0);
+  $('pHeld').textContent = n ? oldest + 'D' : '0';
+  // where they stand: rank by pieces among every holder, read off the chain's owner index
+  $('pRank').textContent = w.rank ? '#' + w.rank : '·';
+  $('pRankOf').textContent = w.label ? '(' + w.label + ')' : (w.holders ? 'OF ' + w.holders.toLocaleString('en-US') + ' HOLDERS' : '');
+  $('pTickets').textContent = WALLET.reduce((a,p) => a + (p.tickets || 0), 0).toLocaleString('en-US');
+  // pieces that actually move: the art's own animation, not the motion switch (613 of 2,222 are still by design)
+  const pct = n / 2222 * 100;
+  $('pShare2').textContent = (pct >= 10 ? pct.toFixed(0) : pct >= 1 ? pct.toFixed(1) : pct.toFixed(2)) + '%';
+  // the facet they hold most of; ties go to the rarer facet, which is the better story and still true
+  const by = {}; WALLET.forEach(p => by[p.facet] = (by[p.facet]||0) + 1);
+  const top = Object.entries(by).sort((a,b) => b[1]-a[1] || (SUPPLY[a[0]]||0) - (SUPPLY[b[0]]||0))[0];
+  $('pMostly').classList.toggle('hidden', !top);
+  if(top){ $('pMostly').style.setProperty('--c', 'var(--'+top[0]+')'); $('pMostly').querySelector('b').textContent = top[0]; }
+  rarestFill();
+  $('pOpensea').href = 'https://opensea.io/' + w.address;
+  // the seven facets, each lit in its own colour when this wallet holds one
+  $('pSeven').innerHTML = FACET_ORDER.map(f => '<i class="'+(facets.has(f)?'on':'')+'" style="--c:var(--'+f+')" title="'+f+'"></i>').join('');
+  // the filters are the facets this wallet actually holds, in the collection's own order, each with its colour
+  invFilter = 'ALL'; invQuery = ''; $('invSearch').value = '';
+  filtersEl.innerHTML = '';
+  ['ALL'].concat(FACET_ORDER.filter(f => facets.has(f))).forEach(f => {
+    const el = document.createElement('span');
+    el.innerHTML = (f === 'ALL' ? '' : '<i style="background:var(--'+f+')"></i>') + f;
+    el.className = (f === 'ALL' ? 'on' : '');
+    el.onclick = () => { invFilter = f;
+      [...filtersEl.children].forEach(c => c.classList.toggle('on', c === el)); buildInv(); };
+    filtersEl.appendChild(el);
+  });
+  document.getElementById('roomProfile').classList.toggle('empty', !n);
+  buildInv();
+  if(n){ show(WALLET[0]); }
+  else { $('pAvatar').removeAttribute('src'); setGlow(null); relayBlocks(); }
+}
+/* ══ RARITY: how many of the 2,222 carry a trait value (data/traits.json, from the core's metadata) ══ */
+let TRAITS = null;
+fetch('/api/traits').then(r => r.ok ? r.json() : null).then(t => { TRAITS = t; if(WALLET.length){ rarestFill(); if(curP && curP.wallet) pieceDetail(curP); } }).catch(() => {});
+const traitCount = (t, v) => TRAITS && TRAITS.counts[t] ? TRAITS.counts[t][v] : null;
+// the wallet's rarest piece = the one carrying the trait value the fewest pieces share (the facet itself excluded)
+function rarestFill(){
+  const btn = document.getElementById('pRarest');
+  let best = null;
+  if(TRAITS) for(const p of WALLET) for(const a of (p.attributes||[])){
+    if(a.trait_type === 'Facet') continue;
+    const k = traitCount(a.trait_type, a.value);
+    if(k && (!best || k < best.k)) best = {p, a, k};
+  }
+  btn.classList.toggle('hidden', !best);
+  if(!best) return;
+  document.getElementById('pRarestImg').src = best.p.file;
+  document.getElementById('pRarestTrait').textContent = best.a.value;
+  document.getElementById('pRarestOf').textContent = '#' + best.p.id + ' · ' + best.k + ' OF ' + TRAITS.supply.toLocaleString('en-US');
+  btn.onclick = () => show(best.p);
+}
+
+function pieceDetail(p){
+  const $ = id => document.getElementById(id);
+  $('pAvatar').src = p.file;
+  $('qName').textContent = String(p.name).replace(/ #\d+$/, '');   // the chain name ends in its own #id, shown once below
+  $('qId').textContent = '#' + p.id + ' · ' + p.facet;
+  $('qDot').style.background = 'var(--'+p.facet+')';
+  // every trait the chain gives this piece, in the chain's own order, except the facet shown above
+  const pal = base ? pieceColours(base) : [], ground = base ? groundOf(base) : null;
+  let pi = 0;
+  $('traitRows').innerHTML = (p.attributes||[]).filter(a => a.trait_type !== 'Facet').map(a => {
+    const col = a.trait_type === 'Background' ? ground : (pal.length ? pal[(pi++) % pal.length] : null);
+    const k = traitCount(a.trait_type, a.value);
+    return '<div class="row"><span class="k">'+esc(String(a.trait_type).toUpperCase())+'</span><span class="v">'+
+      (col ? '<i class="tsw" style="background:'+col+'"></i>' : '')+esc(a.value)+'</span>'+
+      (k ? '<span class="tOf'+(k <= 22 ? ' rare' : '')+'">'+k+' OF '+TRAITS.supply.toLocaleString('en-US')+'</span>' : '')+'</div>'; }).join('');
+  $('qTickets').textContent = p.tickets == null ? '·' : p.tickets;
+  const d = daysSince(p.heldSince);
+  $('qHeld').textContent = d == null ? '·' : d + (d === 1 ? ' DAY' : ' DAYS');
+  $('qBucket').textContent = p.facet + ' · ' + (SUPPLY[p.facet]||0).toLocaleString('en-US');
+  $('qMotion').classList.toggle('on', !!p.animated);
+  $('qMotionTxt').textContent = p.animated ? 'MOVES' : 'STILL BY DESIGN';
+  $('dlSvg').href = '/api/art/'+p.id+'.svg'; $('dlSvg').download = 'FACETS-'+p.id+'.svg';
+  $('qOpensea').href = osItem(p.id);
+}
+// the right panel is ONE panel with tabs, so there is one place to look
+document.getElementById('pTabs').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  for(const x of document.querySelectorAll('#pTabs button')) x.classList.toggle('on', x === b);
+  for(const t of document.querySelectorAll('.pTab')) t.classList.toggle('on', t.dataset.t === b.dataset.t);
+};
+
+/* the light behind the piece: the two strongest colours IN the piece (its background excluded, and
+   near-black / near-white skipped, since neither glows), as two soft spots, one each side */
+function groundOf(g){
+  const count = new Map(); for(const c of g) count.set(c, (count.get(c)||0) + 1);
+  return [...count.entries()].sort((a,b) => b[1]-a[1])[0][0];
+}
+function pieceColours(g){
+  const count = new Map(); for(const c of g) count.set(c, (count.get(c)||0) + 1);
+  const ground = [...count.entries()].sort((a,b) => b[1]-a[1])[0][0];
+  const score = hex => { const n = parseInt(hex.slice(1),16), r = n>>16&255, gg = n>>8&255, b = n&255;
+    const mx = Math.max(r,gg,b), mn = Math.min(r,gg,b), l = (mx+mn)/510;
+    const s = mx === mn ? 0 : (mx-mn)/(255-Math.abs(mx+mn-255));
+    return (l < .12 || l > .92) ? 0 : s; };
+  return [...count.entries()].filter(([c]) => c !== ground && /^#[0-9a-f]{6}$/i.test(c))
+    .map(([c,k]) => [c, k * (0.25 + score(c)) * (score(c) > 0 ? 1 : 0.05)]).sort((a,b) => b[1]-a[1]).map(x => x[0]);
+}
+function setGlow(g){
+  const room = document.getElementById('roomProfile');
+  const cs = g ? pieceColours(g) : [];
+  const rgba = (hex, a) => { const n = parseInt(hex.slice(1),16); return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'; };
+  room.style.setProperty('--glowA', cs[0] ? rgba(cs[0], .34) : 'rgba(0,0,0,0)');
+  room.style.setProperty('--glowB', cs[1] ? rgba(cs[1], .28) : (cs[0] ? rgba(cs[0], .22) : 'rgba(0,0,0,0)'));
+}
+// PNG: the 35x35 grid drawn at an exact multiple, so every block stays a crisp square
+function savePng(px){
+  if(!base || !curP) return;
+  const c = document.createElement('canvas'); c.width = c.height = px;
+  const g = c.getContext('2d'), s = px / N;
+  for(let i=0;i<N*N;i++){ g.fillStyle = base[i]; g.fillRect((i%N)*s, Math.floor(i/N)*s, s, s); }
+  c.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+    a.download = 'FACETS-'+curP.id+'-'+px+'.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); });
+}
+/* ══ SHARE CARD: 1200x675, the size X shows whole. Name, the facet they lean to, the seven lit,
+   their numbers, and up to nine of their pieces drawn block by block from the chain's own grids. ══ */
+async function shareCard(){
+  if(!WALLET.length) return;
+  const b = document.getElementById('pShare'); const label = b.textContent; b.textContent = 'DRAWING…'; b.disabled = true;
+  try {
+    await document.fonts.ready;
+    const W = 1200, H = 675, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d'), css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    g.fillStyle = '#e8e8ed'; g.fillRect(0, 0, W, H);
+    // the light of the piece on stage, like the page
+    const room = getComputedStyle(document.getElementById('roomProfile'));
+    for(const [x, v] of [[0, '--glowA'], [W, '--glowB']]){
+      const rg = g.createRadialGradient(x, H*0.5, 0, x, H*0.5, 620);
+      rg.addColorStop(0, room.getPropertyValue(v).trim() || 'rgba(0,0,0,0)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    }
+    const ink = '#111114', muted = '#6e6e78';
+    g.fillStyle = css('--blue'); g.font = "900 26px Archivo"; g.fillText('FACETS', 64, 86);
+    g.fillStyle = ink; g.font = "900 58px Archivo";
+    const name = document.getElementById('pName').textContent;
+    g.fillText(name.length > 18 ? name.slice(0, 17) + '…' : name, 64, 178);
+    const top = document.querySelector('#pMostly b').textContent;
+    g.fillStyle = css('--' + top) || ink; g.fillRect(64, 206, 16, 16);
+    g.fillStyle = muted; g.font = "700 15px 'JetBrains Mono'"; g.fillText('MOSTLY ' + top, 92, 220);
+    // the seven
+    const F7 = ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'], held = new Set(WALLET.map(p => p.facet));
+    F7.forEach((f, i) => { g.globalAlpha = held.has(f) ? 1 : 0.15; g.fillStyle = css('--' + f); g.fillRect(64 + i*62, 252, 54, 10); });
+    g.globalAlpha = 1;
+    // the numbers
+    const stat = (x, y, k, v) => { g.fillStyle = muted; g.font = "700 13px 'JetBrains Mono'"; g.fillText(k, x, y);
+                                   g.fillStyle = ink; g.font = "900 40px Archivo"; g.fillText(v, x, y + 46); };
+    const $t = id => document.getElementById(id).textContent;
+    stat(64, 320, 'PIECES', $t('pPieces')); stat(234, 320, 'FACETS', $t('pFacets')); stat(404, 320, 'HELD', $t('pHeld'));
+    stat(64, 420, 'HOLDER', $t('pRank') + ' ' + $t('pRankOf').toLowerCase()); stat(404, 420, 'TICKETS', $t('pTickets'));
+    if(!document.getElementById('pRarest').classList.contains('hidden')){
+      g.fillStyle = muted; g.font = "700 13px 'JetBrains Mono'"; g.fillText('RAREST', 64, 530);
+      g.fillStyle = ink; g.font = "800 26px Archivo"; g.fillText($t('pRarestTrait'), 64, 566);
+      g.fillStyle = muted; g.font = "600 14px 'JetBrains Mono'"; g.fillText($t('pRarestOf'), 64, 592);
+    }
+    // up to nine pieces, 3x3, each drawn from its own 35x35 grid
+    const pick = WALLET.slice(0, 9), S = 168, GAP = 14, X0 = W - 64 - (S*3 + GAP*2), Y0 = (H - (S*3 + GAP*2)) / 2;
+    const grids = await Promise.all(pick.map(p => loadGrid(p.file)));
+    grids.forEach((gr, i) => {
+      const x = X0 + (i % 3) * (S + GAP), y = Y0 + Math.floor(i / 3) * (S + GAP), cs = S / N;
+      g.save(); g.shadowColor = 'rgba(16,18,26,.22)'; g.shadowBlur = 18; g.shadowOffsetY = 8;
+      g.fillStyle = gr[0]; g.fillRect(x, y, S, S); g.restore();
+      for(let k = 0; k < N*N; k++){ g.fillStyle = gr[k]; g.fillRect(x + (k % N)*cs, y + Math.floor(k / N)*cs, Math.ceil(cs), Math.ceil(cs)); }
+    });
+    c.toBlob(bl => { const a = document.createElement('a'); a.href = URL.createObjectURL(bl);
+      a.download = 'FACETS-' + name.replace(/[^\w.-]+/g, '_') + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); });
+  } finally { b.textContent = label; b.disabled = false; }
+}
+document.getElementById('pShare').onclick = shareCard;
+document.getElementById('dlPng').onclick  = () => savePng(1050);
+document.getElementById('dlPng4').onclick = () => savePng(4200);
+document.getElementById('invSearch').oninput = e => { invQuery = e.target.value.toLowerCase(); buildInv(); };
+document.querySelector('#pAddr .cp').onclick = () => { if(walletAddr) navigator.clipboard && navigator.clipboard.writeText(walletAddr); };
+
+function buildInv(){
+  const g = document.getElementById('invGrid');
+  const rows = WALLET.filter(p =>
+    (invFilter === 'ALL' || p.facet === invFilter) &&
+    (!invQuery || p.name.toLowerCase().includes(invQuery) || String(p.id).includes(invQuery)));
+  g.innerHTML = '';
+  if(!WALLET.length){
+    g.innerHTML = '<div class="stack invMsg">THIS WALLET HOLDS NO FACETS.</div>';
+  }
+  rows.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'invCard' + (curP && p.id === curP.id ? ' on' : ''); d.dataset.id = p.id;
+    // each card's dot is ITS facet's colour, so the grid reads as the wallet's own spectrum
+    d.innerHTML = '<img loading="lazy" src="'+p.file+'" alt=""><div class="nm">#'+p.id+'</div>' +
+                  '<div class="ow"><em style="background:var(--'+p.facet+')"></em>'+esc(p.name)+'</div>';
+    d.onclick = () => show(p);
+    g.appendChild(d);
+  });
+  document.getElementById('invCount').textContent = rows.length;
+}
+
+/* the blocks floating around the piece are taken FROM the piece: its own colours, drifting off it.
+   The reference used generic squares; ours can afford to be the artwork coming apart. */
+/* ══ THE LOOSE BLOCKS ════════════════════════════════════════════════════════════════════
+   gruff, 2026-09-14: spread them over the whole background, all seven facet colours in several
+   tones, and let him pick one up and throw it. So they are not decoration on a layer any more:
+   they are a tiny physics toy, and they carry the palette the collection is actually made of. */
+const FACET_ORDER = ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'];
+const BLOCKS = [];
+let blockHost = null, grabbed = null, grabDX = 0, grabDY = 0, lastPt = null;
+
+function facetTones(){
+  const cs = getComputedStyle(document.documentElement), out = [];
+  for(const f of FACET_ORDER){
+    const hex = (cs.getPropertyValue('--'+f) || '').trim(); if(!hex || hex[0] !== '#') continue;
+    const n = parseInt(hex.slice(1),16), r = n>>16&255, g = n>>8&255, b = n&255;
+    // four tones per facet: the colour, two lighter, one deeper. Seven facets, twenty-eight tones.
+    [[1,0],[0.78,0.22],[0.55,0.45],[1.18,0]].forEach(([k,w]) => {
+      const mixv = v => Math.max(0, Math.min(255, Math.round(v*k + 255*w)));
+      out.push('rgb('+mixv(r)+','+mixv(g)+','+mixv(b)+')');
+    });
+  }
+  return out;
+}
+
+/* ⛔ gruff, 2026-10-06: forty-six blocks spread evenly over the page buried the buttons and the
+   words, worst of all on PROFILE right after connecting. So: FEWER blocks, they live on the EDGES
+   and in the CORNERS rather than the middle, and none of them may rest on anything you read or
+   click. Every resting place is checked against the boxes of the text, buttons, art and panels on
+   screen at that moment; when the page changes (another room, a resize, a piece selected) any block
+   now sitting on something glides to a free spot. One thrown onto a word drifts off it when it
+   stops. A block that has nowhere free to go fades out rather than cover something. */
+const BLOCK_COUNT = 20, BLOCK_GAP = 14;
+// how many may show per room: HOME has the most air, PROFILE the least, so it gets the fewest
+const BLOCK_LIMIT = { home:20, turn:12, forge:12, profile:8, activity:10, dash:10 };
+/* 📱 on a phone the page scrolls under a fixed layer, so a block placed beside a word is on it one
+   swipe later. There is no rim to keep them on: none on a phone. */
+const blockLimit = () => innerWidth < 768 ? 0 : (BLOCK_LIMIT[view] ?? BLOCK_COUNT);
+const KEEP_OUT = ['header .mark','header nav','header .hright','#walletNote','.draftTag',
+  '.room.on button','.room.on input','.room.on h1','.room.on .stack','.room.on .bigNum','.room.on .meter',
+  '.room.on .homeStats','.room.on .door2','.room.on .hand','.room.on .tagline','.room.on .spectrum',
+  '.room.on .heroWrap','.room.on .machine','.room.on .bigword','.room.on .pCard','.room.on .pPanel',
+  '.room.on .pInv','.room.on .pCardOver','.room.on .rowhand','.room.on .tokenBar','.room.on .chipf',
+  '.room.on .aHead','.room.on .aRow','.room.on .aMore','.room.on .dPulse','.room.on .dSection','.room.on .card','.room.on .statusCard','.room.on .awaits','.room.on .hopLabels','.sheet.on'].join(',');
+let keepRects = [];
+function measureKeepOut(){
+  keepRects = [];
+  for(const el of document.querySelectorAll(KEEP_OUT)){
+    const r = el.getBoundingClientRect();
+    if(r.width < 2 || r.height < 2) continue;
+    keepRects.push({x0:r.left-BLOCK_GAP, y0:r.top-BLOCK_GAP, x1:r.right+BLOCK_GAP, y1:r.bottom+BLOCK_GAP});
+  }
+}
+const hitsKeep = (x, y, s) => keepRects.some(k => x < k.x1 && x+s > k.x0 && y < k.y1 && y+s > k.y0);
+const hitsBlock = (b, x, y) => BLOCKS.some(o => o !== b && !o.gone &&
+  Math.abs((o.hx+o.sz/2)-(x+b.sz/2)) < (o.sz+b.sz)/2+10 && Math.abs((o.hy+o.sz/2)-(y+b.sz/2)) < (o.sz+b.sz)/2+10);
+/* a free spot, weighted to the rim: a point on an edge is always welcome, a corner more so, the
+   middle almost never. With `near`, the free spot closest to it wins instead. */
+function freeSpot(b, near){
+  const W = innerWidth, H = innerHeight, top = 64, s = b.sz;
+  let best = null, bestD = Infinity;
+  for(let k=0;k<(near ? 500 : 900);k++){
+    const x = Math.random()*(W-s), y = top + Math.random()*(H-top-s);
+    if(!near){
+      const ex = Math.min(x, W-s-x)/(W/2), ey = Math.min(y-top, H-s-y)/((H-top)/2);   // 0 at the rim, 1 in the middle
+      if(Math.random() > 0.5*(Math.pow(1-ex,4) + Math.pow(1-ey,4))) continue;
+    }
+    if(hitsKeep(x, y, s) || hitsBlock(b, x, y)) continue;
+    if(!near) return {x, y};
+    const d = Math.hypot(x-near.x, y-near.y);
+    if(d < bestD){ bestD = d; best = {x, y}; }
+  }
+  return best;
+}
+function home(b, spot){
+  if(spot){ b.hx = spot.x; b.hy = spot.y; b.gone = false; }
+  else b.gone = true;
+  b.el.style.opacity = b.gone ? 0 : 1;
+  b.el.style.pointerEvents = b.gone ? 'none' : 'auto';
+}
+// after any change of layout: keep blocks that are still clear, move the rest
+let relayQueued = false;
+function relayBlocks(){
+  if(relayQueued) return; relayQueued = true;
+  // a timer, not a frame: the layout has settled by then, and it still runs in a tab nobody is looking at
+  setTimeout(() => {
+    relayQueued = false;
+    if(!BLOCKS.length) return;
+    measureKeepOut();
+    const W = innerWidth, H = innerHeight, limit = blockLimit();
+    BLOCKS.forEach((b, i) => {
+      if(b.held || b.free) return;
+      if(i >= limit){ if(!b.gone) home(b, null); return; }
+      const out = b.hx > W-b.sz || b.hy > H-b.sz;
+      if(b.gone || out || hitsKeep(b.hx, b.hy, b.sz)) home(b, freeSpot(b));
+    });
+  }, 40);
+}
+
+/* boxes also move without any event we hear about: a number arriving from the chain widens a
+   column, an image finishes loading, a font swaps in. So every block re-checks itself every 1.5s;
+   thirty-odd getBoundingClientRect calls, nothing a phone would notice. */
+setInterval(relayBlocks, 1500);
+
+function confetti(){
+  const box = document.getElementById('blockField'); if(!box) return;
+  blockHost = box;
+  if(BLOCKS.length) return;                       // built once, then it lives
+  const tones = facetTones(); if(!tones.length) return;
+  measureKeepOut();
+  for(let i=0;i<BLOCK_COUNT;i++){
+    const el = document.createElement('i');
+    const sz = 9 + Math.round(Math.random()*19);
+    const b = { el, x:0, y:0, hx:-999, hy:-999, vx:0, vy:0, sz, held:false, gone:false, free:false, t: Math.random()*7 };
+    el.style.cssText = 'position:absolute;display:block;border-radius:3px;cursor:grab;' +
+      'width:'+sz+'px;height:'+sz+'px;background:'+tones[(Math.random()*tones.length)|0]+';' +
+      'box-shadow:0 '+(3+sz/6|0)+'px '+(7+sz/3|0)+'px rgba(16,18,26,.22);pointer-events:auto;' +
+      'touch-action:none;transition:opacity .35s';
+    el.addEventListener('pointerdown', e => {
+      grabbed = b; b.held = true; el.style.cursor='grabbing'; el.setPointerCapture(e.pointerId);
+      grabDX = e.clientX - b.x; grabDY = e.clientY - b.y; lastPt = {x:e.clientX, y:e.clientY, t:performance.now()};
+      e.preventDefault(); e.stopPropagation();
+    });
+    box.appendChild(el); BLOCKS.push(b);
+    home(b, freeSpot(b)); b.x = b.hx; b.y = b.hy;
+  }
+  window.addEventListener('pointermove', e => {
+    if(!grabbed) return;
+    grabbed.x = e.clientX - grabDX; grabbed.y = e.clientY - grabDY;
+    const now = performance.now(), dt = Math.max(8, now - lastPt.t);
+    const cap = v => Math.max(-38, Math.min(38, v));  // a hard flick must not fire it into orbit
+    grabbed.vx = cap((e.clientX - lastPt.x) / dt * 16);
+    grabbed.vy = cap((e.clientY - lastPt.y) / dt * 16);
+    lastPt = {x:e.clientX, y:e.clientY, t:now};
+  });
+  window.addEventListener('pointerup', () => {
+    if(!grabbed) return; const b = grabbed;
+    b.held = false; b.el.style.cursor='grab'; grabbed = null; b.free = true;   // in flight until it stops
+  });
+}
+
+function stepBlocks(){
+  if(!BLOCKS.length) return;
+  const W = innerWidth, H = innerHeight;
+  for(const b of BLOCKS){
+    if(!b.held){
+      if(b.free){
+        b.x += b.vx; b.y += b.vy;
+        b.vx *= 0.94; b.vy *= 0.94;                 // thrown, and slowing down
+        if(b.x < 0){ b.x = 0; b.vx = -b.vx*0.5; }
+        if(b.y < 64){ b.y = 64; b.vy = -b.vy*0.5; }
+        if(b.x > W-b.sz){ b.x = W-b.sz; b.vx = -b.vx*0.5; }
+        if(b.y > H-b.sz){ b.y = H-b.sz; b.vy = -b.vy*0.5; }
+        if(Math.abs(b.vx) < 0.05 && Math.abs(b.vy) < 0.05){
+          // it has stopped: where it landed is its new home, unless that is on top of something
+          b.free = false; b.vx = b.vy = 0; b.hx = b.x; b.hy = b.y;
+          measureKeepOut();
+          if(hitsKeep(b.x, b.y, b.sz)) home(b, freeSpot(b, {x:b.x, y:b.y}));
+        }
+      } else {
+        b.t += dt;                                  // at rest it drifts, so nothing is ever still,
+        b.x += (b.hx - b.x)*0.08; b.y += (b.hy - b.y)*0.08;   // and a moved home is glided to, not jumped to
+      }
+    }
+    const dy = (b.held || b.free) ? 0 : Math.sin(b.t*0.6 + b.sz)*3;
+    b.el.style.transform = 'translate3d('+b.x.toFixed(1)+'px,'+(b.y+dy).toFixed(1)+'px,0)';
+  }
+}
+
+/* back on PROFILE from HOME, the stage still holds a DISCOVER piece: put theirs back */
+function profileUI(){
+  if(WALLET.length && !(curP && curP.wallet)) show(lastMine && WALLET.includes(lastMine) ? lastMine : WALLET[0]);
+  buildInv(); confetti();
+}
+
+sizeHero();
+select(Math.floor(Math.random()*PIECES.length)).then(async () => {
+  go('home'); draw();
+  if(LIVE) loadColl();
+  // ?wallet=0x… opens that address read-only; a wallet that was connected before reconnects silently
+  const asked = new URLSearchParams(location.search).get('wallet');
+  if(asked && /^0x[0-9a-fA-F]{40}$/.test(asked)) { openWallet(asked, true); return; }
+  try {
+    if(localStorage.getItem('facetsLabConnected') === '1'){
+      await new Promise(r => setTimeout(r, 120));    // give EIP-6963 wallets a moment to announce
+      provider = pickProvider();
+      const a = provider && await provider.request({ method:'eth_accounts' });
+      if(a && a.length){ watchProvider(); await openWallet(a[0], false); checkChain(); }
+    }
+  } catch {}
+});
+</script></body></html>
