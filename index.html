@@ -1044,7 +1044,7 @@ a.aAddr:hover{background:rgba(17,18,26,.1)}
 #roomDash{overflow-y:auto}
 #roomDash.on{display:block}
 .dWrap{max-width:1180px}
-.dPulse{display:grid;grid-template-columns:repeat(4,1fr) 1.6fr;gap:12px;margin-bottom:28px}
+.dPulse{display:grid;grid-template-columns:repeat(3,1fr) 2fr;gap:12px;margin-bottom:28px}
 .dTile{padding:16px 16px 14px;border-radius:16px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);
   border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow);min-width:0}
 .dTile b{display:block;margin-top:8px;font:700 26px/1 'Pixelify Sans','JetBrains Mono',monospace;white-space:nowrap}
@@ -1141,6 +1141,13 @@ a.dRow:hover{background:rgba(255,255,255,.7)}
 .homeStats{gap:16px}
 .homeStats .stack{letter-spacing:.12em}
 .hsDot{margin-right:5px} .hsSeven{margin-right:5px}
+/* holders by size: label, bar, count, one row each */
+.dRows{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.dGroup{display:grid;grid-template-columns:96px 1fr 44px;align-items:center;gap:10px}
+.dGroup .stack{line-height:1;white-space:nowrap}
+.dGroup i{display:block;height:8px;border-radius:4px;background:rgba(17,18,26,.06)}
+.dGroup em{display:block;height:100%;border-radius:4px}
+.dGroup b{font:700 13px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;text-align:right}
 </style></head><body>
 
 <header>
@@ -2218,17 +2225,21 @@ const DASH = { data:null, sort:'pieces', dir:-1, q:'', all:false, timer:null };
 const F7 = ['NEWBIE','COLLECTOR','DEGEN','BUILDER','OG','WHALE','GHOST'];
 const n0 = x => Number(x).toLocaleString('en-US');
 function dashPulse(d){
-  const p = d.pulse, t = p.dist, tot = t.one + t.few + t.many + t.lots || 1;
-  const seg = (k, n, c) => '<i style="flex:'+Math.max(n, 0.0001)+';background:'+c+'" title="'+k+': '+n+'"></i>';
+  const p = d.pulse, t = p.dist;
   const tile = (k, v, sub) => '<div class="dTile"><span class="stack">'+k+'</span><b>'+v+'</b>'+(sub ? '<s class="stack">'+sub+'</s>' : '')+'</div>';
+  // average among the ranked holders: the project's two wallets would make it a lie
+  const ranked = d.holders.filter(h => !h.label), avg = ranked.length ? ranked.reduce((a, h) => a + h.pieces, 0) / ranked.length : 0;
+  /* gruff, 2026-10-07: the one stacked bar with "1 \u00b7 18" under it read as noise. Now one plain row per size:
+     what the group is, a bar as long as the group, and how many holders are in it. */
+  const groups = [['1 PIECE', t.one, 'var(--GHOST)'], ['2-5 PIECES', t.few, 'var(--NEWBIE)'], ['6-20 PIECES', t.many, 'var(--COLLECTOR)'], ['21+ PIECES', t.lots, 'var(--WHALE)']];
+  const top = Math.max(...groups.map(g => g[1])) || 1;
   document.getElementById('dPulse').innerHTML =
     tile('HOLDERS', n0(p.holders), 'OF ' + n0(p.pieces) + ' PIECES') +
     tile('7/7 CLUB', n0(p.fullSet), 'HOLD ALL SEVEN FACETS') +
-    tile('21+ PIECES', n0(t.lots), 'THE BIGGEST HOLDERS') +
-    tile('ONE PIECE', n0(t.one), 'HOLD A SINGLE FACET') +
-    '<div class="dTile dDist"><span class="stack">HOW MANY EACH HOLDS</span><div class="dBar">' +
-      seg('1 PIECE', t.one, 'var(--GHOST)') + seg('2-5', t.few, 'var(--NEWBIE)') + seg('6-20', t.many, 'var(--COLLECTOR)') + seg('21+', t.lots, 'var(--WHALE)') +
-    '</div><div class="dLegend stack"><span><i style="background:var(--GHOST)"></i>1 \u00b7 '+t.one+'</span><span><i style="background:var(--NEWBIE)"></i>2-5 \u00b7 '+t.few+'</span><span><i style="background:var(--COLLECTOR)"></i>6-20 \u00b7 '+t.many+'</span><span><i style="background:var(--WHALE)"></i>21+ \u00b7 '+t.lots+'</span></div></div>';
+    tile('AVERAGE', avg.toFixed(1), 'PIECES PER HOLDER') +
+    '<div class="dTile dDist"><span class="stack">HOLDERS BY HOW MANY THEY HOLD</span><div class="dRows">' +
+      groups.map(([k, n, c]) => '<div class="dGroup"><span class="stack">'+k+'</span><i><em style="width:'+Math.max(2, n / top * 100)+'%;background:'+c+'"></em></i><b>'+n0(n)+'</b></div>').join('') +
+    '</div></div>';
   document.getElementById('dBlock').textContent = 'LIVE FROM MAINNET \u00b7 BLOCK ' + n0(d.block);
 }
 function dashTable(){
@@ -2449,7 +2460,7 @@ const M = {
     tray:{back:[651,1019], front:[596,1078], y0:745, y1:800}
   },
   turn: {
-    still:'assets/turnstatik.png', video:'assets/turnanimate.mp4', lever:'assets/turnkol.png',
+    still:'assets/turnstatik.png', video:'assets/turnanimate.mp4',
     glass:{x0:598, x1:1050, top:305, bottom:628, ry:26},
     slots:[[525,592],[599,676],[689,768],[783,865],[880,960],[972,1048],[1057,1124]],
     slotY:[716,778],
@@ -2470,9 +2481,8 @@ class Machine {
       '<img class="mStill" src="'+cfg.still+'" alt="">' +
       '<video class="mVid" src="'+cfg.video+'" muted playsinline preload="auto"></video>' +
       '<video class="mVid" src="'+cfg.video+'" muted playsinline preload="auto"></video>' +
-      // ⛔ the lever's <img> had dropped out of this markup, so THE TURN had no handle on any screen since
-      // 09-14 (all the code that places and drags it was still here, waiting for an element that never existed)
-      (cfg.lever ? '<img class="mLever" alt="" draggable="false">' : '') +
+      // ⛔ NO separate lever image: turnkol.png is an old draft with a BLUE knob, and gruff does not want it anywhere
+      // (2026-10-07). The machine's own grey handle is part of the render itself.
       '<canvas class="mOver"></canvas><div class="mFade"></div>';
     this.still = el.querySelector('.mStill');
     this.vids  = [...el.querySelectorAll('.mVid')];
