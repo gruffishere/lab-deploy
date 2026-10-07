@@ -2819,7 +2819,7 @@ const ANNOUNCED = new Map();
 window.addEventListener('eip6963:announceProvider', e => { const d = e.detail; if(d && d.info) ANNOUNCED.set(d.info.rdns || d.info.uuid, d); });
 window.dispatchEvent(new Event('eip6963:requestProvider'));
 // WalletConnect project id (cloud.reown.com, project of gruff's, public by design: it ships in every page that uses it)
-const WC_PROJECT_ID = 'f72f6414975b95d96c5cf7bd1863e5ec';
+const WC_PROJECT_ID = 'cb9c8474a03c5d43f4d13df1e46ea9a3';   // the FACETS Reown project (2026-10-07), allow-list: thefacets.art + www
 const WC_LIB = 'https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.0/+esm';
 let wcProvider = null;
 function walletList(){
@@ -2938,6 +2938,7 @@ async function useWallet(id){
     if(!accts || !accts.length) return;
     try { localStorage.setItem('facetsLabConnected', id); } catch {}
     watchProvider();
+    logConnect(accts[0], 'connect');
     await openWallet(accts[0], false);
     checkChain();
   } catch(e){
@@ -2957,7 +2958,7 @@ document.getElementById('wpWrap').onclick = e => { if(e.target.id === 'wpWrap') 
 function watchProvider(){
   if(!provider || provider.__facetsWatched || !provider.on) return;
   provider.__facetsWatched = true;
-  provider.on('accountsChanged', a => { if(walletView) return; a && a.length ? openWallet(a[0], false) : setConnected(false); });
+  provider.on('accountsChanged', a => { if(walletView) return; a && a.length ? (logConnect(a[0], 'switch'), openWallet(a[0], false)) : setConnected(false); });
   provider.on('chainChanged', () => checkChain());
 }
 async function checkChain(){
@@ -2970,6 +2971,15 @@ async function checkChain(){
   } catch {}
 }
 
+/* WHO CONNECTED (gruff, 2026-10-07): one small note to our own server per real connect, for the daily check.
+   Never for a ?wallet= view, never from an automated browser (the audits run mock wallets against the live site). */
+function logConnect(addr, how){
+  if(navigator.webdriver) return;
+  const phone = /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+  let wallet = 'unknown'; try { wallet = localStorage.getItem('facetsLabConnected') || 'unknown'; } catch {}
+  try { fetch('/api/hello', { method:'POST', keepalive:true, headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ address: addr, wallet, device: phone ? 'phone' : 'desktop', how }) }).catch(() => {}); } catch {}
+}
 async function openWallet(addr, viewOnly){
   walletAddr = addr; walletView = viewOnly;
   document.getElementById('walletChip').textContent = (viewOnly ? 'VIEWING ' : '') + short(addr);
@@ -3408,7 +3418,7 @@ select(Math.floor(Math.random()*PIECES.length)).then(async () => {
         const w = walletList().find(x => x.id === last); provider = w && w.provider;
         a = provider && await provider.request({ method:'eth_accounts' });
       }
-      if(a && a.length){ watchProvider(); await openWallet(a[0], false); checkChain(); }
+      if(a && a.length){ watchProvider(); logConnect(a[0], 'return'); await openWallet(a[0], false); checkChain(); }
     }
   } catch {}
 });

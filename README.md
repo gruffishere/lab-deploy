@@ -7,7 +7,7 @@ Built by `exp/site_draft/build_deploy.cjs`. Do not edit here: edit `exp/site_dra
 
 ## Railway variables
 - `RPC_URL`: mainnet RPC with the key. Required. Never committed.
-- `ART_DIR=/data/art`: art cache on the volume mounted at `/data` (sales.json lands in `/data`).
+- `ART_DIR=/data/art`: art cache on the volume mounted at `/data` (sales.json and connects.json land in `/data`).
 
 ## What it serves
 The page, plus `/api/*` (health, collection, discover, traits, dashboard, activity, wallet/<addr>, token/<id>, art/<id>.svg).

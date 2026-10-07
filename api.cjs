@@ -19,6 +19,7 @@
 // A cached file is used only when it was drawn for the token's CURRENT owner.
 'use strict';
 const fs = require('fs'), path = require('path');
+const { createConnects } = require('./connects.cjs');
 const EXP = path.join(__dirname, '..');
 const ethers = (() => { try { return require('ethers'); } catch { return require(path.join(EXP, 'onchain_proto', 'node_modules', 'ethers')); } })();
 
@@ -451,9 +452,25 @@ function createReader() {
 // HTTP glue. Returns true when it handled the request.
 function mount(reader) {
   const json = (res, code, body) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); };
+  // WHO CONNECTED (connects.cjs): the record sits next to the art cache, so on Railway it is on the /data volume
+  const connects = createConnects(path.join(ART_DIR, '..'), 
+    async addr => (await reader._internals.ownerIndex()).filter(o => o && o.toLowerCase() === addr.toLowerCase()).length);
   return async (req, res, rel) => {
     if (!rel.startsWith('/api/')) return false;
+    if (rel === '/api/hello' && req.method === 'POST') {
+      // a small JSON note from the page; anything over 1 kB is not one
+      let body = '', big = false;
+      for await (const c of req) { body += c; if (body.length > 1024) { big = true; break; } }
+      let o = null; try { o = big ? null : JSON.parse(body); } catch {}
+      if (!o) { json(res, 400, { error: 'bad note' }); return true; }
+      const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+      const code = await connects.hello(o, ip);
+      code === 204 ? res.writeHead(204, { 'Cache-Control': 'no-store' }).end() : json(res, code, { error: 'not recorded' });
+      return true;
+    }
     if (req.method !== 'GET') { json(res, 405, { error: 'GET only' }); return true; }
+    // private: without the key this answers exactly like a route that does not exist
+    if (rel === '/api/connects') { connects.allowed(req) ? json(res, 200, connects.read()) : json(res, 404, { error: 'unknown route' }); return true; }
     try {
       let m;
       if (rel === '/api/health') json(res, 200, await reader.health());
