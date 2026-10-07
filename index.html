@@ -1054,6 +1054,7 @@ a.aAddr:hover{background:rgba(17,18,26,.1)}
 .dLegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;font-size:8.5px;line-height:1.2}
 .dLegend i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:5px;vertical-align:0}
 .dSection{margin-bottom:30px}
+.dNote{margin:-16px 0 26px;line-height:1.7}
 .dHead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px}
 .dHead b{font:800 12px/1 'JetBrains Mono',ui-monospace,Consolas,monospace;letter-spacing:.16em}
 .dHead s{text-decoration:none}
@@ -1134,6 +1135,8 @@ a.wpItem{text-decoration:none;color:var(--ink)}
 /* while our OPEN METAMASK button is up, WalletConnect's own window stays open (closing it cancels the request) but hidden */
 body.mmFlow wcm-modal{display:none !important}
 .wpGo{border-color:var(--ink);background:#fff}
+.wpWait{cursor:default;border-style:dashed}
+.wpWait:hover{transform:none;border-color:rgba(17,18,26,.1)}
 .wpItem s{display:block;text-decoration:none;margin-top:3px;font-size:8.5px}
 /* ── HOME: the pool says what it is counted in, and the four facts carry a colour each (gruff, 2026-10-07) ── */
 .ethSym{margin-left:.12em;color:var(--blue);font-size:.62em;vertical-align:.32em}
@@ -1384,6 +1387,7 @@ body.mmFlow wcm-modal{display:none !important}
     </div>
 
     <div class="dPulse" id="dPulse"></div>
+    <div class="stack dNote">HOLDERS COUNTS EVERY WALLET. THE 7/7 CLUB, THE AVERAGE AND THE SIZE ROWS LEAVE OUT THE ARTIST AND TREASURY WALLETS.</div>
 
 
     <div class="dSection">
@@ -2491,7 +2495,9 @@ class Machine {
     this.still = el.querySelector('.mStill');
     this.vids  = [...el.querySelectorAll('.mVid')];
     // iPhone autoplays only a video that is muted as a PROPERTY and inline; the attributes alone are not always enough
-    this.vids.forEach(v => { v.muted = true; v.defaultMuted = true; v.playsInline = true; v.setAttribute('webkit-playsinline', ''); });
+    // loop natively too: if the crossfade ever cannot hand over (a phone that did not load the second copy), the clip
+    // still starts again by itself instead of stopping on its last frame
+    this.vids.forEach(v => { v.muted = true; v.defaultMuted = true; v.playsInline = true; v.loop = true; v.setAttribute('webkit-playsinline', ''); });
     this.leverEl = el.querySelector('.mLever');
     this.cv = el.querySelector('.mOver');
     this.cx = this.cv.getContext('2d');
@@ -2535,6 +2541,10 @@ class Machine {
   }
   /* the crossfade driver: when the visible clip is FADE from its end, the other starts from zero
      and takes over. Nobody ever sees the seam because the seam is never on screen alone. */
+  /* ⛔ gruff, 2026-10-07: on his phone the machine played one lap and then VANISHED. The crossfade hands over to
+     the second copy of the clip, and a phone does not preload it: the hand-over landed on a video with no frame,
+     the still was already hidden, and the box went empty. The second copy is now only faded in once it can
+     actually play; until then the first simply loops from the top. */
   tickVideo(){
     if(!this.playing) return;
     const a = this.vids[this.active], b = this.vids[1-this.active];
@@ -2542,6 +2552,12 @@ class Machine {
     const left = a.duration - a.currentTime;
     if(left <= this.FADE){
       if(b.paused){ b.currentTime = 0; b.play().catch(()=>{}); }
+      const ready = b.readyState >= 3 && !b.paused && b.currentTime > 0;
+      if(!ready){                                    // not ready: no crossfade, the visible clip loops by itself
+        b.style.opacity = 0; a.style.opacity = 1;
+        if(left <= 0.06 || a.ended){ a.currentTime = 0; a.play().catch(()=>{}); }
+        return;
+      }
       const t = 1 - (left / this.FADE);
       b.style.opacity = t; a.style.opacity = 1 - t;
       if(left <= 0.03){ a.pause(); a.style.opacity = 0; b.style.opacity = 1; this.active = 1-this.active; }
@@ -2851,21 +2867,37 @@ function connectWallet(){
     (w.icon ? '<img src="'+esc(w.icon)+'" alt="">' : '<i class="wpIcon">'+(w.id === 'walletconnect' ? '\u25a3' : '\u25c6')+'</i>') +
     '<span><b>'+esc(w.name)+'</b>'+(w.sub ? '<s class="stack">'+w.sub+'</s>' : '')+'</span></button>').join('');
   document.getElementById('wpWrap').classList.remove('hidden');
+  // on a phone the MetaMask path needs the WalletConnect library: start loading it now, not on the tap
+  if(walletList().some(w => w.id === 'metamask-wc')) walletConnectProvider().catch(() => {});
+}
+// one line of status inside the picker, so a tap is always answered by something on screen
+function wpStatus(title, sub, extra){
+  document.getElementById('wpList').innerHTML = '<div class="wpItem wpWait"><i class="wpIcon">◆</i><span><b>' + title + '</b>' +
+    (sub ? '<s class="stack">' + sub + '</s>' : '') + '</span></div>' + (extra || '');
+  document.getElementById('wpWrap').classList.remove('hidden');
 }
 async function useWallet(id){
-  document.getElementById('wpWrap').classList.add('hidden');
+  if(id !== 'metamask-wc') document.getElementById('wpWrap').classList.add('hidden');
   if(id === 'metamask-app'){ const w = walletList().find(x => x.id === id); if(w) location.href = w.link; return; }
   try {
     let accts;
     if(id === 'metamask-wc'){
       /* the pairing link goes to MetaMask through a BUTTON the person taps: an iPhone opens an app reliably only
-         from a tap, not from a script that fires later. After approving there, they come back and this resolves. */
-      provider = await walletConnectProvider();
+         from a tap, not from a script that fires later. After approving there, they come back and this resolves.
+         ⛔ gruff, 2026-10-07: "nothing happens" — the picker used to close at once while the library loaded for
+         seconds. It now stays open and says what it is doing, and any failure is written inside it. */
+      wpStatus('PREPARING METAMASK…', 'ONE MOMENT');
+      try { provider = await walletConnectProvider(); }
+      catch(e){ wpStatus('METAMASK COULD NOT START', String(e && e.message || e).slice(0, 80).toUpperCase(),
+                  '<button class="wpItem" data-w="metamask-app"><i class="wpIcon">◆</i><span><b>Open inside MetaMask</b><s class="stack">USE THIS INSTEAD</s></span></button>'); return; }
       if(provider.accounts && provider.accounts.length) accts = provider.accounts;
       else {
         // ⛔ never CLOSE WalletConnect's own QR window here: closing it cancels the pending request, and the approval
         // in MetaMask then lands on nothing. It is only HIDDEN while our button is up (body.mmFlow, see the CSS).
         document.body.classList.add('mmFlow');
+        // an iPhone may RELOAD this tab while the person is in MetaMask: remember the attempt now, so a reloaded page
+        // finds the approved WalletConnect session and connects it by itself
+        try { localStorage.setItem('facetsLabConnected', 'walletconnect'); } catch {}
         provider.once('display_uri', uri => {
           const box = document.getElementById('wpList');
           box.innerHTML = '<a class="wpItem wpGo" href="https://metamask.app.link/wc?uri=' + encodeURIComponent(uri) + '">' +
@@ -2873,7 +2905,17 @@ async function useWallet(id){
           document.getElementById('wpWrap').classList.remove('hidden');
         });
         try { accts = await provider.enable(); }
-        finally { document.body.classList.remove('mmFlow'); document.getElementById('wpWrap').classList.add('hidden'); }
+        catch(e){
+          document.body.classList.remove('mmFlow');
+          try { localStorage.removeItem('facetsLabConnected'); } catch {}
+          if(window.__wpCancelled){ window.__wpCancelled = false; return; }
+          // a failure is said INSIDE the picker, with the fallback right under it
+          wpStatus('METAMASK DID NOT CONNECT', String(e && e.message || e).slice(0, 80).toUpperCase(),
+            '<button class="wpItem" data-w="metamask-wc"><i class="wpIcon">◆</i><span><b>Try again</b></span></button>' +
+            '<button class="wpItem" data-w="metamask-app"><i class="wpIcon">◆</i><span><b>Open inside MetaMask</b><s class="stack">USE THIS INSTEAD</s></span></button>');
+          return;
+        }
+        document.body.classList.remove('mmFlow'); document.getElementById('wpWrap').classList.add('hidden');
       }
       id = 'walletconnect';                          // the session IS a WalletConnect one: reconnect it as such
     } else if(id === 'walletconnect'){

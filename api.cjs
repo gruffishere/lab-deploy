@@ -380,7 +380,7 @@ function createReader() {
       }
       for (const h of list) for (const f of Object.keys(h.facets)) if (buckets[f]) buckets[f].holders++;
       dash = { block: ownersBlock, at: new Date().toISOString(),
-        pulse: { holders: ranked.length, pieces: ids.length, fullSet: full, dist,
+        pulse: { holders: list.length, ranked: ranked.length, pieces: ids.length, fullSet: full, dist,
                  sales: saleRows.length, volume: vol, avg: saleRows.length ? vol / saleRows.length : 0,
                  last: last ? { id: last.id, eth: sales.get(last.hash)[last.to].eth, unit: sales.get(last.hash)[last.to].unit, time: last.time } : null },
         buckets, holders: list };
@@ -431,7 +431,8 @@ function createReader() {
       const ranked = [...per.entries()].filter(([k]) => !LABELS[k]).map(([, n]) => n);
       const rank = ids.length && !label ? 1 + ranked.filter(n => n > ids.length).length : null;
       return { address: ethers.utils.getAddress(addr.toLowerCase()), ens, block: ownersBlock, count: ids.length,
-        rank, holders: ranked.length, label,
+        // HOLDERS has ONE meaning on every page: every wallet holding a piece (2026-10-07: home said 262, dashboard 260)
+        rank, holders: per.size, label,
         tokens: ids.map((id, i) => shape(arts[i], l[i])) };
     },
     async token(id) {
