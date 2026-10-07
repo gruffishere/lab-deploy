@@ -1131,6 +1131,16 @@ a.dRow:hover{background:rgba(255,255,255,.7)}
 .wpItem .wpIcon{display:grid;place-items:center;font-style:normal;background:#3b99fc;color:#fff;font-size:15px}
 .wpItem b{display:block;font:700 14px/1.2 'Archivo',system-ui,sans-serif}
 .wpItem s{display:block;text-decoration:none;margin-top:3px;font-size:8.5px}
+/* ── HOME: the pool says what it is counted in, and the four facts carry a colour each (gruff, 2026-10-07) ── */
+.ethSym{margin-left:.12em;color:var(--blue);font-size:.62em;vertical-align:.32em}
+.hsDot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:0}
+.hsSeven{display:inline-flex;gap:1px;margin-right:6px;vertical-align:0}
+.hsSeven i{display:block;width:3px;height:8px;border-radius:1px}
+.homeStats .stack{white-space:nowrap}   /* the block sits beside its word, never on a line of its own */
+/* nowrap made the column wider and squeezed the art to 3px: the four facts tighten instead */
+.homeStats{gap:16px}
+.homeStats .stack{letter-spacing:.12em}
+.hsDot{margin-right:5px} .hsSeven{margin-right:5px}
 </style></head><body>
 
 <header>
@@ -1166,14 +1176,14 @@ a.dRow:hover{background:rgba(255,255,255,.7)}
   <div class="gTC"></div>
   <div class="gTR">
     <div class="stack lbl">POOL</div>
-    <div class="bigNum"><span id="rNum">0.0006</span></div>
+    <div class="bigNum"><span id="rNum">0.0006</span><span class="ethSym">Ξ</span></div>
     <div class="meter"><i id="rBar"></i><s id="rPct">0.06%</s></div>
     <div class="stack" id="rUnit">Ξ IN THE POOL</div>
     <div class="homeStats">
-      <div><span class="stack lbl">SUPPLY</span><b id="hsSupply">2,222</b></div>
-      <div><span class="stack lbl">HOLDERS</span><b id="hsHolders">·</b></div>
-      <div><span class="stack lbl">FACETS</span><b>7</b></div>
-      <div><span class="stack lbl">REVEALED</span><b>01 OCT</b></div>
+      <div><span class="stack lbl"><i class="hsDot" style="background:var(--blue)"></i>SUPPLY</span><b id="hsSupply">2,222</b></div>
+      <div><span class="stack lbl"><i class="hsDot" style="background:var(--NEWBIE)"></i>HOLDERS</span><b id="hsHolders">·</b></div>
+      <div><span class="stack lbl"><i class="hsSeven"><i style="background:var(--NEWBIE)"></i><i style="background:var(--COLLECTOR)"></i><i style="background:var(--DEGEN)"></i><i style="background:var(--BUILDER)"></i><i style="background:var(--OG)"></i><i style="background:var(--WHALE)"></i><i style="background:var(--GHOST)"></i></i>FACETS</span><b>7</b></div>
+      <div><span class="stack lbl"><i class="hsDot" style="background:var(--WHALE)"></i>REVEALED</span><b>01 OCT</b></div>
     </div>
   </div>
 
@@ -2489,13 +2499,21 @@ class Machine {
     this.s = r.width / ASSET_W;                      // asset space → screen space
     this.cx.setTransform(dpr*this.s, 0, 0, dpr*this.s, 0, 0);
   }
+  /* ⛔ gruff, 2026-10-07: on a real phone both machines were EMPTY. The still was hidden the moment play()
+     was CALLED, and a phone often refuses to autoplay (low power mode, cellular data) or has no frame yet, so
+     nothing was left on screen. The still now stays until the video is really playing, and comes back if it
+     stops or fails: a phone that will not play video still shows the machine. */
   play(on){
     if(on === this.playing) return;
     this.playing = on;
-    this.el.classList.toggle('running', on);
-    if(on){ const v = this.vids[0]; v.currentTime = 0; v.style.opacity = 1;
-            this.vids[1].style.opacity = 0; this.active = 0; v.play().catch(()=>{}); }
-    else  { this.vids.forEach(v => { v.pause(); v.style.opacity = 0; }); }
+    if(on){ const v = this.vids[0]; v.currentTime = 0;
+            this.vids[1].style.opacity = 0; this.active = 0;
+            const shown = () => { if(this.playing){ v.style.opacity = 1; this.el.classList.add('running'); } };
+            if(!v.__watched){ v.__watched = true;
+              for(const x of this.vids){ x.addEventListener('error', () => { this.el.classList.remove('running'); }); } }
+            v.play().then(() => { if(v.readyState >= 2) shown(); else v.addEventListener('playing', shown, { once:true }); })
+                    .catch(() => { this.el.classList.remove('running'); v.style.opacity = 0; }); }
+    else  { this.el.classList.remove('running'); this.vids.forEach(v => { v.pause(); v.style.opacity = 0; }); }
   }
   /* the crossfade driver: when the visible clip is FADE from its end, the other starts from zero
      and takes over. Nobody ever sees the seam because the seam is never on screen alone. */
