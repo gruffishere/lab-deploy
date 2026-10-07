@@ -2809,7 +2809,13 @@ function walletList(){
     .sort((a, b) => (/metamask/i.test(b.id + b.name) ? 1 : 0) - (/metamask/i.test(a.id + a.name) ? 1 : 0));
   // an old-style injected wallet that does not announce itself, unless it is Phantom
   if(!list.length && window.ethereum && !window.ethereum.isPhantom) list.push({ id: 'injected', name: window.ethereum.isMetaMask ? 'MetaMask' : 'Browser wallet', icon: '', provider: window.ethereum });
-  list.push({ id: 'walletconnect', name: 'WalletConnect', icon: '', sub: 'SCAN WITH YOUR PHONE' });
+  /* 📱 gruff, 2026-10-07: on a phone only WalletConnect showed. A phone browser has no wallet inside it, so MetaMask
+     on a phone means opening THIS page inside the MetaMask app, where it then connects in one tap. */
+  const phone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  if(phone && !list.some(w => /metamask/i.test(w.id + w.name)))
+    list.unshift({ id: 'metamask-app', name: 'MetaMask', icon: '', sub: 'OPENS THIS PAGE IN THE METAMASK APP',
+                   link: 'https://metamask.app.link/dapp/' + location.host + location.pathname });
+  list.push({ id: 'walletconnect', name: 'WalletConnect', icon: '', sub: phone ? 'RAINBOW, COINBASE AND OTHER WALLETS' : 'SCAN WITH YOUR PHONE' });
   return list;
 }
 async function walletConnectProvider(){
@@ -2840,6 +2846,7 @@ function connectWallet(){
 }
 async function useWallet(id){
   document.getElementById('wpWrap').classList.add('hidden');
+  if(id === 'metamask-app'){ const w = walletList().find(x => x.id === id); if(w) location.href = w.link; return; }
   try {
     let accts;
     if(id === 'walletconnect'){
