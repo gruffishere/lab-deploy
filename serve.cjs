@@ -30,14 +30,32 @@ http.createServer(async (req, res) => {
   const relPath = path.relative(ROOT, file).split(path.sep).join('/');
   const ALLOWED = /^(index\.html|cells\.js|audit_layout\.js|audit_run\.js|(assets|art7)\/[\w.-]+|data\/[\w.-]+\.json)$/;
   if (!file.startsWith(ROOT + path.sep) || !ALLOWED.test(relPath)) { res.writeHead(403).end('no'); return; }
+  /* ⛔ VIDEO NEEDS BYTE RANGES (gruff, 2026-10-07: no machine animation on his phone). iPhone Safari asks for an
+     .mp4 in pieces (Range: bytes=…) and will not play one from a server that cannot answer 206 Partial Content.
+     Desktop browsers forgave the whole-file 200; Safari does not. Videos are served in ranges, and cached. */
+  if (path.extname(file) === '.mp4') {
+    fs.stat(file, (err, st) => {
+      if (err) { res.writeHead(404).end('not found'); return; }
+      const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+      const head = { 'Content-Type': 'video/mp4', 'Accept-Ranges': 'bytes', 'Cache-Control': 'public, max-age=86400' };
+      if (!m) { res.writeHead(200, { ...head, 'Content-Length': st.size }); fs.createReadStream(file).pipe(res); return; }
+      let a = m[1] === '' ? Math.max(0, st.size - Number(m[2])) : Number(m[1]);
+      let b = m[1] === '' || m[2] === '' ? st.size - 1 : Math.min(Number(m[2]), st.size - 1);
+      if (a > b || a >= st.size) { res.writeHead(416, { 'Content-Range': 'bytes */' + st.size }).end(); return; }
+      res.writeHead(206, { ...head, 'Content-Range': 'bytes ' + a + '-' + b + '/' + st.size, 'Content-Length': b - a + 1 });
+      fs.createReadStream(file, { start: a, end: b }).pipe(res);
+    });
+    return;
+  }
   fs.readFile(file, (err, buf) => {
     if (err) { res.writeHead(404).end('not found'); return; }
     // DISCOVER: the page arrives with this visit's seven already in it, so the first paint is the real art
     // and there is no extra round trip. Without the read server the page falls back to its own seven.
     if (file === path.join(ROOT, 'index.html') && reader)
       buf = Buffer.from(buf.toString('utf8').replace('/*@DISCOVER*/null', JSON.stringify(reader.discover())));
+    // the page is never cached (it carries this visit's DISCOVER seven); the machine renders and data may be, for an hour
     res.writeHead(200, { 'Content-Type': TYPE[path.extname(file)] || 'application/octet-stream',
-                         'Cache-Control': 'no-store' });
+                         'Cache-Control': relPath === 'index.html' ? 'no-store' : 'public, max-age=3600' });
     res.end(buf);
   });
 }).listen(PORT, () => console.log('site draft on http://localhost:' + PORT + (reader ? '  (read server on)' : '')));

@@ -2470,10 +2470,14 @@ class Machine {
       '<img class="mStill" src="'+cfg.still+'" alt="">' +
       '<video class="mVid" src="'+cfg.video+'" muted playsinline preload="auto"></video>' +
       '<video class="mVid" src="'+cfg.video+'" muted playsinline preload="auto"></video>' +
-
+      // ⛔ the lever's <img> had dropped out of this markup, so THE TURN had no handle on any screen since
+      // 09-14 (all the code that places and drags it was still here, waiting for an element that never existed)
+      (cfg.lever ? '<img class="mLever" alt="" draggable="false">' : '') +
       '<canvas class="mOver"></canvas><div class="mFade"></div>';
     this.still = el.querySelector('.mStill');
     this.vids  = [...el.querySelectorAll('.mVid')];
+    // iPhone autoplays only a video that is muted as a PROPERTY and inline; the attributes alone are not always enough
+    this.vids.forEach(v => { v.muted = true; v.defaultMuted = true; v.playsInline = true; v.setAttribute('webkit-playsinline', ''); });
     this.leverEl = el.querySelector('.mLever');
     this.cv = el.querySelector('.mOver');
     this.cx = this.cv.getContext('2d');
