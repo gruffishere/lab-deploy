@@ -1130,6 +1130,10 @@ a.dRow:hover{background:rgba(255,255,255,.7)}
 .wpItem img, .wpItem .wpIcon{width:30px;height:30px;border-radius:8px;flex:none}
 .wpItem .wpIcon{display:grid;place-items:center;font-style:normal;background:#3b99fc;color:#fff;font-size:15px}
 .wpItem b{display:block;font:700 14px/1.2 'Archivo',system-ui,sans-serif}
+a.wpItem{text-decoration:none;color:var(--ink)}
+/* while our OPEN METAMASK button is up, WalletConnect's own window stays open (closing it cancels the request) but hidden */
+body.mmFlow wcm-modal{display:none !important}
+.wpGo{border-color:var(--ink);background:#fff}
 .wpItem s{display:block;text-decoration:none;margin-top:3px;font-size:8.5px}
 /* ── HOME: the pool says what it is counted in, and the four facts carry a colour each (gruff, 2026-10-07) ── */
 .ethSym{margin-left:.12em;color:var(--blue);font-size:.62em;vertical-align:.32em}
@@ -2812,10 +2816,14 @@ function walletList(){
   /* 📱 gruff, 2026-10-07: on a phone only WalletConnect showed. A phone browser has no wallet inside it, so MetaMask
      on a phone means opening THIS page inside the MetaMask app, where it then connects in one tap. */
   const phone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
-  if(phone && !list.some(w => /metamask/i.test(w.id + w.name)))
-    list.unshift({ id: 'metamask-app', name: 'MetaMask', icon: '', sub: 'OPENS THIS PAGE IN THE METAMASK APP',
-                   link: 'https://metamask.app.link/dapp/' + location.host + location.pathname });
+  /* gruff, same day: "opening the site INSIDE MetaMask is odd; it used to go Safari → MetaMask → approve → back to
+     Safari". That is WalletConnect pointed at MetaMask, so that is now the first choice; opening the page inside the
+     MetaMask app stays only as the last resort. */
+  const mmPhone = phone && !list.some(w => /metamask/i.test(w.id + w.name));
+  if(mmPhone) list.unshift({ id: 'metamask-wc', name: 'MetaMask', icon: '', sub: 'APPROVE IN THE APP, COME BACK HERE' });
   list.push({ id: 'walletconnect', name: 'WalletConnect', icon: '', sub: phone ? 'RAINBOW, COINBASE AND OTHER WALLETS' : 'SCAN WITH YOUR PHONE' });
+  if(mmPhone) list.push({ id: 'metamask-app', name: 'Open inside MetaMask', icon: '', sub: 'ONLY IF THE ABOVE DOES NOT WORK',
+                          link: 'https://metamask.app.link/dapp/' + location.host + location.pathname });
   return list;
 }
 async function walletConnectProvider(){
@@ -2849,7 +2857,26 @@ async function useWallet(id){
   if(id === 'metamask-app'){ const w = walletList().find(x => x.id === id); if(w) location.href = w.link; return; }
   try {
     let accts;
-    if(id === 'walletconnect'){
+    if(id === 'metamask-wc'){
+      /* the pairing link goes to MetaMask through a BUTTON the person taps: an iPhone opens an app reliably only
+         from a tap, not from a script that fires later. After approving there, they come back and this resolves. */
+      provider = await walletConnectProvider();
+      if(provider.accounts && provider.accounts.length) accts = provider.accounts;
+      else {
+        // ⛔ never CLOSE WalletConnect's own QR window here: closing it cancels the pending request, and the approval
+        // in MetaMask then lands on nothing. It is only HIDDEN while our button is up (body.mmFlow, see the CSS).
+        document.body.classList.add('mmFlow');
+        provider.once('display_uri', uri => {
+          const box = document.getElementById('wpList');
+          box.innerHTML = '<a class="wpItem wpGo" href="https://metamask.app.link/wc?uri=' + encodeURIComponent(uri) + '">' +
+            '<i class="wpIcon">◆</i><span><b>OPEN METAMASK TO APPROVE</b><s class="stack">THEN COME BACK TO THIS PAGE</s></span></a>';
+          document.getElementById('wpWrap').classList.remove('hidden');
+        });
+        try { accts = await provider.enable(); }
+        finally { document.body.classList.remove('mmFlow'); document.getElementById('wpWrap').classList.add('hidden'); }
+      }
+      id = 'walletconnect';                          // the session IS a WalletConnect one: reconnect it as such
+    } else if(id === 'walletconnect'){
       provider = await walletConnectProvider();
       accts = provider.accounts && provider.accounts.length ? provider.accounts : await provider.enable();
     } else {
@@ -2862,10 +2889,19 @@ async function useWallet(id){
     watchProvider();
     await openWallet(accts[0], false);
     checkChain();
-  } catch(e){ note(e && e.code === 4001 ? 'CONNECTION DECLINED IN THE WALLET' : 'THE WALLET DID NOT ANSWER'); }
+  } catch(e){
+    // a cancel the person chose is not an error and gets no message
+    if(window.__wpCancelled){ window.__wpCancelled = false; return; }
+    note(e && e.code === 4001 ? 'CONNECTION DECLINED IN THE WALLET' : 'THE WALLET DID NOT ANSWER');
+  }
 }
 document.getElementById('wpList').onclick = e => { const b = e.target.closest('[data-w]'); if(b) useWallet(b.dataset.w); };
-document.getElementById('wpX').onclick = () => document.getElementById('wpWrap').classList.add('hidden');
+// closing our window while a MetaMask request waits is a CANCEL: close WalletConnect's hidden one too, so nothing hangs
+document.getElementById('wpX').onclick = () => {
+  document.getElementById('wpWrap').classList.add('hidden');
+  if(document.body.classList.contains('mmFlow') && wcProvider && wcProvider.modal && wcProvider.modal.closeModal){ window.__wpCancelled = true; try { wcProvider.modal.closeModal(); } catch {} }
+  document.body.classList.remove('mmFlow');
+};
 document.getElementById('wpWrap').onclick = e => { if(e.target.id === 'wpWrap') e.target.classList.add('hidden'); };
 function watchProvider(){
   if(!provider || provider.__facetsWatched || !provider.on) return;
